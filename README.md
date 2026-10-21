@@ -1,4 +1,4 @@
-# StreamDB — CSE302L Database Systems Case Study
+# Bingeling — CSE302L Database Systems Case Study
 
 NoSQL case study for the **Entertainment** domain. The subject is a video streaming platform (similar to Netflix or Prime Video). The database is **MongoDB**.
 
@@ -28,7 +28,7 @@ NoSQL case study for the **Entertainment** domain. The subject is a video stream
 
 ```sh
 docker compose up -d
-docker compose exec mongo mongosh streamdb
+docker compose exec mongo mongosh bingeling
 ```
 
 ## Status

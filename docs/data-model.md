@@ -1,6 +1,6 @@
 # Data Model
 
-Database name: `streamdb`.
+Database name: `bingeling`.
 
 ## Collections
 

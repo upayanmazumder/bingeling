@@ -16,7 +16,7 @@
 
 - Put each question in its own file: `queries/simple/q01-<slug>.js` to `queries/complex/q10-<slug>.js`.
 - Start each file with a comment block: the question, the intent, and the collections used.
-- Each file must run alone: `mongosh streamdb queries/simple/q01-<slug>.js`.
+- Each file must run alone: `mongosh bingeling queries/simple/q01-<slug>.js`.
 - Print results with `printjson` or `.toArray()` so the screenshot shows the output.
 - Simple questions use `find`, projection, sort, limit, `countDocuments`, or `distinct`.
 - Complex questions use the aggregation pipeline: `$lookup`, `$unwind`, `$group`, `$facet`, `$bucket`, window functions, or date operators.
