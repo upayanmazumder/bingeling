@@ -89,62 +89,35 @@ QUESTIONS = [
 ]
 
 REFERENCES = [
-    ("R1", "Project domain analysis", "docs/domain-analysis.md"),
-    ("R2", "Project data model", "docs/data-model.md"),
-    ("R3", "Project fixed questions", "docs/questions.md"),
-    ("R4", "Project guidelines", "GUIDELINES.md"),
-    (
-        "R5",
-        "Netflix, What We Watched: The Second Half of 2025",
-        "https://about.netflix.com/news/what-we-watched-the-second-half-of-2025",
-    ),
-    (
-        "R6",
-        "FICCI-EY, Indian media and entertainment sector in 2025",
-        "https://www.ey.com/en_in/newsroom/2026/03/india-s-media-and-entertainment-sector-grew-9-percent-to-inr-2-point-78-trillion-in-2025-driven-by-digital-and-live-experiences-ficci-ey-report",
-    ),
-    (
-        "R7",
-        "Government of India, 2024 video subscription revenue",
-        "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2205233&lang=2&reg=3",
-    ),
-    (
-        "R8",
-        "MongoDB, Data Modeling Best Practices",
-        "https://www.mongodb.com/docs/manual/data-modeling/best-practices/",
-    ),
-    (
-        "R9",
-        "MongoDB, Unbounded Arrays Anti-Pattern",
-        "https://www.mongodb.com/docs/manual/data-modeling/design-antipatterns/unbounded-arrays/",
-    ),
-    (
-        "R10",
-        "MongoDB, SonyLIV content management case study",
-        "https://www.mongodb.com/company/blog/innovation/sonyliv-improves-cms-performance-by-98-percent-on-atlas",
-    ),
-    ("R11", "IMDb, Non-Commercial Datasets", "https://data.imdb.com/non-commercial-datasets/"),
-    (
-        "R12",
-        "MovieLens 32M, README and licence",
-        "https://files.grouplens.org/datasets/movielens/ml-32m-README.html",
-    ),
-    (
-        "R13",
-        "Kaggle, Netflix titles dataset metadata",
-        "https://www.kaggle.com/api/v1/datasets/view/shivamb/netflix-shows",
-    ),
-    (
-        "R14",
-        "ZEE5 FY25 viewing report, Deccan Chronicle",
-        "https://www.deccanchronicle.com/entertainment/ott/zee5-clocks-105-billion-watch-minutes-in-fy25-amid-renewed-regional-push-1898817",
-    ),
-    (
-        "R15",
-        "Harper, F. Maxwell, and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems 5(4), Article 19",
-        "https://doi.org/10.1145/2827872",
-    ),
+    'Bingeling project, "Domain analysis," docs/domain-analysis.md, 2026.',
+    'Bingeling project, "Data model," docs/data-model.md, 2026.',
+    'Bingeling project, "Fixed questions," docs/questions.md, 2026.',
+    'Bingeling project, "Guidelines," GUIDELINES.md, 2026.',
+    'Netflix, "What we watched: The second half of 2025." [Online]. Available: https://about.netflix.com/news/what-we-watched-the-second-half-of-2025',
+    'FICCI and EY, "India\'s media and entertainment sector in 2025," EY India newsroom, Mar. 2026. [Online]. Available: https://www.ey.com/en_in/newsroom/2026/03/india-s-media-and-entertainment-sector-grew-9-percent-to-inr-2-point-78-trillion-in-2025-driven-by-digital-and-live-experiences-ficci-ey-report',
+    'Government of India, Press Information Bureau, "Video subscription revenue in 2024." [Online]. Available: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2205233&lang=2&reg=3',
+    'MongoDB, Inc., "Data modeling best practices," MongoDB Docs. [Online]. Available: https://www.mongodb.com/docs/manual/data-modeling/best-practices/',
+    'MongoDB, Inc., "Unbounded arrays anti-pattern," MongoDB Docs. [Online]. Available: https://www.mongodb.com/docs/manual/data-modeling/design-antipatterns/unbounded-arrays/',
+    'MongoDB, Inc., "SonyLIV improves CMS performance by 98 percent on Atlas." [Online]. Available: https://www.mongodb.com/company/blog/innovation/sonyliv-improves-cms-performance-by-98-percent-on-atlas',
+    'IMDb, "IMDb non-commercial datasets." [Online]. Available: https://data.imdb.com/non-commercial-datasets/',
+    'GroupLens, "MovieLens 32M README and licence." [Online]. Available: https://files.grouplens.org/datasets/movielens/ml-32m-README.html',
+    'Kaggle, "Netflix movies and TV shows," dataset metadata. [Online]. Available: https://www.kaggle.com/api/v1/datasets/view/shivamb/netflix-shows',
+    'Deccan Chronicle, "ZEE5 clocks 105 billion watch minutes in FY25." [Online]. Available: https://www.deccanchronicle.com/entertainment/ott/zee5-clocks-105-billion-watch-minutes-in-fy25-amid-renewed-regional-push-1898817',
+    'F. M. Harper and J. A. Konstan, "The MovieLens datasets: History and context," ACM Trans. Interact. Intell. Syst., vol. 5, no. 4, Art. no. 19, 2015, doi: 10.1145/2827872.',
 ]
+
+
+def ieee_citations(text):
+    """Turn internal [R12, R15] and [R1–R4] markers into IEEE numeric citations."""
+
+    def replace(match):
+        inner = match.group(1)
+        numbers = re.findall(r"R(\d+)", inner)
+        if "–" in inner:
+            return f"[{numbers[0]}]–[{numbers[-1]}]"
+        return ", ".join(f"[{number}]" for number in numbers)
+
+    return re.sub(r"\[(R\d+(?:(?:–|,\s*)R\d+)*)\]", replace, text)
 
 
 def required(path):
@@ -219,8 +192,8 @@ def load_inputs():
 
 
 def compact_sample(document):
-    # Keep the sample legible without silently changing the stored field values.
-    return json.dumps(document, ensure_ascii=False, indent=2)
+    # One line per document. Field values stay exactly as stored.
+    return json.dumps(document, ensure_ascii=False)
 
 
 def output_excerpt(text, stem, maximum=42):
@@ -244,6 +217,11 @@ def build(manifest, collections, queries):
     parts = [
         "```{=typst}\n",
         '#set heading(numbering: "1.")\n',
+        '#set page(margin: (x: 1.6cm, y: 1.5cm), numbering: "1")\n',
+        "#set text(size: 9pt)\n",
+        "#set par(leading: 0.5em, spacing: 0.7em)\n",
+        "#show raw: set text(size: 6.5pt)\n",
+        "#show heading: set block(above: 0.9em, below: 0.5em)\n",
         "#align(center)[\n",
         "  #v(22%)\n",
         '  #text(size: 30pt, weight: "bold")[Bingeling]\n',
@@ -257,8 +235,7 @@ def build(manifest, collections, queries):
         "  #text(size: 12pt)[22 October 2026]\n",
         "]\n",
         "#pagebreak()\n",
-        "#outline(title: [Contents])\n",
-        "#pagebreak()\n",
+        "#outline(title: [Contents], depth: 2)\n",
         "```\n\n",
         "# Introduction\n\n",
         "Bingeling models a video streaming service with MongoDB 7. It stores catalogue titles, user subscriptions, rating-derived viewing proxies, reviews, plans, and generated payments. This course case study uses published catalogue and rating records where marked. It does not operate a real streaming service. The objective is to answer five simple and five complex database questions with reproducible queries and captured results [R1–R4].\n\n",
@@ -314,7 +291,7 @@ def build(manifest, collections, queries):
     ]
     image_is_png(SCREENSHOTS / "population.png")
     parts += [
-        "![Population command and database counts](../screenshots/population.png){ width=90% }\n\n"
+        "![Population command and database counts](../screenshots/population.png){ width=70% }\n\n"
     ]
     for group, heading in (("simple", "Simple questions"), ("complex", "Complex questions")):
         parts += [
@@ -333,29 +310,27 @@ def build(manifest, collections, queries):
                 f"**Query source:** `queries/{group}/{stem}.js`\n\n",
                 code(query, "javascript"),
                 "\n",
-                f"**Saved terminal output:** `docs/query-output/{stem}.txt`\n\n",
-                code(output_excerpt(output, stem)),
-                "\n",
-                f"![Q{number} captured command and output](../screenshots/{stem}.png){{ width=90% }}\n\n",
+                f"Output file: `docs/query-output/{stem}.txt`. The screenshot shows the command and the output.\n\n",
+                f"![Q{number} captured command and output](../screenshots/{stem}.png){{ width=70% }}\n\n",
                 "**Insight and scope.** ",
                 insight,
-                " The saved output and screenshot above contain the observed records.\n\n",
+                " The screenshot above contains the observed records.\n\n",
             ]
     parts += [
         "# Insights\n\n",
         "The catalogue queries show available titles, languages, and cast matches. Country-genre minutes, completion, binge groups, and hourly device use are properties of this constructed dataset. They are not market demand estimates. Multi-genre titles appear in several genre totals. Completion and rating are linked by the generator's rating threshold, so their association is partly built into the data. Likewise, the generator assigns countries, devices, and plan states. Monthly payments are simulated. The saved outputs above give the exact result values for each query, subject to its stated scope.\n\n",
         "# Conclusion and limitations\n\n",
-        "This case study demonstrates document modeling, indexed lookup designs, aggregation, and a repeatable source-to-report trail. Every query block comes from its executable source. Each result excerpt comes from a saved terminal run. Each numbered screenshot is required at build time. These checks prevent a report with missing evidence, but they cannot prove a screenshot came from a specific database state.\n\n",
+        "This case study demonstrates document modeling, indexed lookup designs, aggregation, and a repeatable source-to-report trail. Every query block comes from its executable source. Each screenshot shows a terminal run of its query file. Each numbered screenshot is required at build time. These checks prevent a report with missing evidence, but they cannot prove a screenshot came from a specific database state.\n\n",
         "Netflix catalogue labels are a dated sample. MovieLens ratings are not viewing logs [R12, R13]. User identities, country and time zone, devices, episodes, subscriptions, and payments are constructed. The generator derives many completion flags from ratings; this prevents independent inference from the Q7 comparison. A rating timestamp is not a watch-start time; Q4, Q8, and Q10 illustrate query mechanics rather than real viewing rhythms. A current subscription record cannot reconstruct all past plan changes. Payments do not prove collected or recognized revenue. Do not use these results for forecasts. Source terms restrict reuse of the MovieLens-derived records [R1, R12, R15].\n\n",
         "# References\n\n",
     ]
-    for label, title, url in REFERENCES:
-        accessed = " Accessed 22 October 2026." if url.startswith("http") else ""
-        parts += [f"- [{label}] {title}. {url}.{accessed}\n"]
+    for number, entry in enumerate(REFERENCES, start=1):
+        suffix = " Accessed: Oct. 22, 2026." if "[Online]" in entry else ""
+        parts += [f"- [{number}] {entry}{suffix}\n"]
     parts += [
         "\n**Evidence files:** `data/manifest.json`, the six `data/*.json` arrays, ten `queries/**/*.js` files, ten `docs/query-output/*.txt` files, and ten matching `screenshots/*.png`. These files fix the reproducible scope of this report.\n"
     ]
-    return "".join(parts)
+    return ieee_citations("".join(parts))
 
 
 def main():

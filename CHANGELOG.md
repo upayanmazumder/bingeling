@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.1 - 2026-10-22
+
+### Changed
+- The report uses IEEE numeric citations with access dates.
+- The report fits in 14 pages: smaller margins and fonts, one-line sample documents, and no duplicate output blocks.
+- The report does not include the extra queries Q11 and Q12. They stay in the repository.
+
 ## 1.0.0 - 2026-10-22
 
 ### Added

@@ -21,3 +21,5 @@ Record evidence before using a number in the report. `F` entries describe observ
 | F-10 | A source check on 22 October 2026 reached 25 of 29 cited URLs. | Four URLs returned HTTP 403 to an automated request. The author must read them. See `docs/domain-analysis.md`. |
 | D-06 | Build the report as Markdown, then Typst, then PDF. | Typst is small and the build works in CI. The course template, citation style, and page limit are still unknown. |
 | D-07 | Capture screenshots in the Lab Terminal app. One `mongosh` session runs every query with `load()`. | `scripts/capture-lab-terminal.sh` drives the real window with `wtype` and captures it with `grim`. |
+| D-08 | The course accepts a PDF without a template, requires IEEE citations, and limits the report to under 15 pages. The extra queries stay out of the report. The author confirmed this on 22 October 2026. | The report has 14 pages and numeric IEEE references. |
+| D-09 | The author reviewed all 13 screenshots and found them fine. | Issue #43 closes. |

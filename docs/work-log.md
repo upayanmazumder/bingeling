@@ -10,3 +10,4 @@
 | 2026-10-22 | Captured 11 terminal screenshots in Xvfb and built the report. | `report/Bingeling-report.pdf` has 33 pages. |
 | 2026-10-22 | Replaced the virtual-display screenshots with captures from Lab Terminal (sonder). Added Q11 and Q12. | 13 PNG files in `screenshots/`. Q11 and Q12 run in `scripts/run-queries.sh`. |
 | 2026-10-22 | Added formatter settings and ran `ruff`, `prettier`, and `shellcheck`. Added the source check. | `shellcheck` reports no findings. STE lint reports no hard violations. |
+| 2026-10-22 | Applied the author's answers: IEEE references, 14-page report, no extras in the report. | `bash scripts/build-report.sh` builds a 14-page PDF. |
