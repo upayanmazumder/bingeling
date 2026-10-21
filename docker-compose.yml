@@ -8,6 +8,12 @@ services:
       - mongo-data:/data/db
       - ./:/workspace:ro
     working_dir: /workspace
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ping: 1}).ok"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+      start_period: 15s
 
 volumes:
   mongo-data:

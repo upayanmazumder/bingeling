@@ -4,3 +4,6 @@ __pycache__/
 .env
 *.log
 .DS_Store
+data/raw/
+report/.build/
+report/Bingeling-report.typ

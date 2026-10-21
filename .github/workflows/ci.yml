@@ -1,0 +1,32 @@
+name: Database and report
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+      - name: Run from an empty database
+        run: bash scripts/demo.sh
+      - name: Build final PDF
+        run: bash scripts/build-report.sh
+      - name: Upload report and query outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bingeling-evidence
+          path: |
+            report/Bingeling-report.pdf
+            docs/query-output/*.txt
+          if-no-files-found: warn
+      - name: Remove project containers and volume
+        if: always()
+        run: docker compose down -v

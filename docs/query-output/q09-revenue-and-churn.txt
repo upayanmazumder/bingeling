@@ -1,0 +1,25 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/q09-revenue-and-churn.js
+{
+  totalPlanMonths: 63,
+  showingFirst: 20
+}
+{"revenueInr":14925,"payments":75,"activeAtMonthStart":75,"cancelledDuringMonth":0,"month":{"$date":"2025-01-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":47377,"payments":73,"activeAtMonthStart":73,"cancelledDuringMonth":0,"month":{"$date":"2025-01-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":40419,"payments":81,"activeAtMonthStart":81,"cancelledDuringMonth":0,"month":{"$date":"2025-01-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":33233,"payments":167,"activeAtMonthStart":167,"cancelledDuringMonth":0,"month":{"$date":"2025-02-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":94105,"payments":145,"activeAtMonthStart":145,"cancelledDuringMonth":0,"month":{"$date":"2025-02-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":74850,"payments":150,"activeAtMonthStart":150,"cancelledDuringMonth":0,"month":{"$date":"2025-02-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":51939,"payments":261,"activeAtMonthStart":261,"cancelledDuringMonth":0,"month":{"$date":"2025-03-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":154462,"payments":238,"activeAtMonthStart":238,"cancelledDuringMonth":0,"month":{"$date":"2025-03-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":116267,"payments":233,"activeAtMonthStart":233,"cancelledDuringMonth":0,"month":{"$date":"2025-03-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":67262,"payments":338,"activeAtMonthStart":338,"cancelledDuringMonth":0,"month":{"$date":"2025-04-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":207031,"payments":319,"activeAtMonthStart":319,"cancelledDuringMonth":0,"month":{"$date":"2025-04-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":157185,"payments":315,"activeAtMonthStart":315,"cancelledDuringMonth":0,"month":{"$date":"2025-04-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":86565,"payments":435,"activeAtMonthStart":435,"cancelledDuringMonth":0,"month":{"$date":"2025-05-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":263494,"payments":406,"activeAtMonthStart":406,"cancelledDuringMonth":0,"month":{"$date":"2025-05-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":193113,"payments":387,"activeAtMonthStart":387,"cancelledDuringMonth":0,"month":{"$date":"2025-05-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":102684,"payments":516,"activeAtMonthStart":516,"cancelledDuringMonth":0,"month":{"$date":"2025-06-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":325798,"payments":502,"activeAtMonthStart":502,"cancelledDuringMonth":0,"month":{"$date":"2025-06-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}
+{"revenueInr":225548,"payments":452,"activeAtMonthStart":452,"cancelledDuringMonth":0,"month":{"$date":"2025-06-01T00:00:00Z"},"plan":"standard","planPriceInr":499,"churnRatePct":0}
+{"revenueInr":118405,"payments":595,"activeAtMonthStart":595,"cancelledDuringMonth":0,"month":{"$date":"2025-07-01T00:00:00Z"},"plan":"basic","planPriceInr":199,"churnRatePct":0}
+{"revenueInr":384208,"payments":592,"activeAtMonthStart":592,"cancelledDuringMonth":0,"month":{"$date":"2025-07-01T00:00:00Z"},"plan":"premium","planPriceInr":649,"churnRatePct":0}

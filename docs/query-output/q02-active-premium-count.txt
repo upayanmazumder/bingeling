@@ -1,0 +1,4 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q02-active-premium-count.js
+{
+  activePremiumUsers: 619
+}

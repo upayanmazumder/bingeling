@@ -1,0 +1,15 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q04-recent-watches.js
+{
+  userId: ObjectId('01000000000000000000001c'),
+  showingNewest: 10
+}
+{"_id":{"$oid":"03000000000000000000c350"},"titleId":{"$oid":"020000000000000000000002"},"titleName":"Blood & Water","season":1,"episode":3,"device":"tv","startedAt":{"$date":"2023-06-12T17:00:00Z"},"minutesWatched":52,"completed":true,"origin":"synthetic-binge-scenario"}
+{"_id":{"$oid":"03000000000000000000c34f"},"titleId":{"$oid":"020000000000000000000002"},"titleName":"Blood & Water","season":1,"episode":2,"device":"tv","startedAt":{"$date":"2023-06-12T16:00:00Z"},"minutesWatched":46,"completed":true,"origin":"synthetic-binge-scenario"}
+{"_id":{"$oid":"03000000000000000000c34e"},"titleId":{"$oid":"020000000000000000000002"},"titleName":"Blood & Water","season":1,"episode":1,"device":"tv","startedAt":{"$date":"2023-06-12T15:00:00Z"},"minutesWatched":31,"completed":true,"origin":"synthetic-binge-scenario"}
+{"_id":{"$oid":"030000000000000000003323"},"titleId":{"$oid":"02000000000000000000040a"},"titleName":"Rush","device":"mobile","startedAt":{"$date":"2020-04-18T20:17:18Z"},"minutesWatched":123,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"030000000000000000004df3"},"titleId":{"$oid":"0200000000000000000005ce"},"titleName":"Rango","device":"tv","startedAt":{"$date":"2017-11-24T15:06:34Z"},"minutesWatched":110,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"030000000000000000007586"},"titleId":{"$oid":"020000000000000000001f19"},"titleName":"Scott Pilgrim vs. the World","device":"web","startedAt":{"$date":"2010-08-16T15:50:14Z"},"minutesWatched":112,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"03000000000000000000bac9"},"titleId":{"$oid":"020000000000000000002265"},"titleName":"Zombieland","device":"tablet","startedAt":{"$date":"2010-05-16T02:36:07Z"},"minutesWatched":88,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"030000000000000000000a67"},"titleId":{"$oid":"020000000000000000001e82"},"titleName":"Quantum of Solace","device":"mobile","startedAt":{"$date":"2010-05-16T02:33:38Z"},"minutesWatched":106,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"03000000000000000000a50c"},"titleId":{"$oid":"02000000000000000000023e"},"titleName":"Kung Fu Panda","device":"tv","startedAt":{"$date":"2010-05-16T02:32:28Z"},"minutesWatched":94,"completed":true,"origin":"movielens-rating-proxy"}
+{"_id":{"$oid":"03000000000000000000ba1b"},"titleId":{"$oid":"020000000000000000001ae9"},"titleName":"Gran Torino","device":"web","startedAt":{"$date":"2009-12-27T18:19:53Z"},"minutesWatched":117,"completed":true,"origin":"movielens-rating-proxy"}

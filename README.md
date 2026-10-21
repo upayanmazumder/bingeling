@@ -15,25 +15,47 @@ NoSQL case study for the **Entertainment** domain. The subject is a video stream
 |------|---------|
 | `docs/domain-analysis.md` | Analysis of the streaming domain and stakeholders |
 | `docs/data-model.md` | Collections, document shapes, indexes, design decisions |
-| `docs/questions.md` | The 5 simple and 5 complex questions (queries to be written) |
+| `docs/questions.md` | The 5 simple and 5 complex questions and their query files |
 | `docs/report-outline.md` | Structure of the final submission document |
 | `GUIDELINES.md` | Rules for work in this repository |
 | `docker-compose.yml` | Local MongoDB 7 instance |
-| `data/` | Generated seed data (JSON) |
-| `scripts/` | Seed and data generation scripts |
-| `queries/simple/`, `queries/complex/` | One `.js` file per question, run with `mongosh` |
-| `screenshots/` | Execution screenshots for the report |
+| `data/` | Generated JSON arrays and a source manifest |
+| `scripts/` | Data generation, loading, validation, query runner, and report build |
+| `queries/simple/`, `queries/complex/` | One runnable `.js` file per question |
+| `screenshots/` | Terminal screenshots of query execution |
 
 ## Quick start
 
+Docker, Docker Compose, Bash, and Python 3 are required. The first run pulls MongoDB 7.
+The demo removes only this Compose project's database volume before it loads the committed data.
+
 ```sh
-docker compose up -d
-docker compose exec mongo mongosh bingeling
+bash scripts/demo.sh
+bash scripts/build-report.sh
 ```
+
+The report is `report/Bingeling-report.pdf`. To run one query after the demo:
+
+```sh
+docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q01-thrillers-after-2018.js
+```
+
+To rebuild the data from original sources, run `python3 scripts/generate_data.py`.
+See `docs/data-sources.md` for source terms and `docs/seed-design.md` for field provenance.
+
+To regenerate terminal screenshots after loading data:
+
+```sh
+bash scripts/capture-screenshots.sh
+```
+
+The capture command runs each query in a real `xterm` inside a temporary X11 display.
+It shares the running MongoDB container's network without mounting the Docker socket.
+Review each PNG in `screenshots/` before building the report.
 
 ## Status
 
-Bootstrap only. The seed scripts and the queries are not implemented yet. See `docs/questions.md` for the list of work.
+The ten query files, generated data, and final report are part of this repository.
 
 ## Assignment requirements
 

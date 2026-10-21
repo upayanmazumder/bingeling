@@ -1,0 +1,15 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q01-thrillers-after-2018.js
+{
+  totalMatches: 10,
+  showingNewest: 10
+}
+{"_id":{"$oid":"020000000000000000000380"},"name":"Oxygen","releaseYear":2021,"language":"en","genres":["Drama","International","Thriller"]}
+{"_id":{"$oid":"0200000000000000000003e8"},"name":"Stowaway","releaseYear":2021,"language":"en","genres":["Drama","International","Thriller"]}
+{"_id":{"$oid":"0200000000000000000007f5"},"name":"#Alive","releaseYear":2020,"language":"ko","genres":["Horror","International","Thriller"]}
+{"_id":{"$oid":"0200000000000000000007cc"},"name":"The Devil All The Time","releaseYear":2020,"language":"en","genres":["Drama","Thriller"]}
+{"_id":{"$oid":"020000000000000000000d65"},"name":"El Camino: A Breaking Bad Movie","releaseYear":2019,"language":"en","genres":["Drama","Thriller"]}
+{"_id":{"$oid":"020000000000000000000d66"},"name":"Fractured","releaseYear":2019,"language":"en","genres":["Thriller"]}
+{"_id":{"$oid":"020000000000000000000eb5"},"name":"I Am Mother","releaseYear":2019,"language":"en","genres":["International","Sci-Fi","Thriller"]}
+{"_id":{"$oid":"020000000000000000000d9d"},"name":"In the Shadow of the Moon","releaseYear":2019,"language":"en","genres":["Drama","Sci-Fi","Thriller"]}
+{"_id":{"$oid":"0200000000000000000009a8"},"name":"Uncut Gems","releaseYear":2019,"language":"en","genres":["Drama","Thriller"]}
+{"_id":{"$oid":"020000000000000000001033"},"name":"Velvet Buzzsaw","releaseYear":2019,"language":"en","genres":["Drama","Thriller"]}

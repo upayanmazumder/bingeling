@@ -1,0 +1,8 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q03-catalogue-languages.js
+[
+  'en',
+  'es',
+  'hi',
+  'ja',
+  'ko'
+]

@@ -1,6 +1,6 @@
 # Questions
 
-Status: the questions are fixed. The queries are not written yet.
+Status: all ten fixed questions have standalone mongosh queries. Run each query from the repository root against the seeded `bingeling` database. Queries print counts and compact Extended JSON rows. Large results show a labeled sample: Q1 and Q5 show the first 10 rows, Q7 and Q9 show the first 20 rows, and Q8 shows the top 25 rows.
 
 ## Simple (5)
 
@@ -21,6 +21,14 @@ Status: the questions are fixed. The queries are not written yet.
 | Q8 | Which users binge-watched (3 or more episodes of one series on one day)? | `$dateTrunc`, `$group`, `$match` | `queries/complex/q08-binge-watchers.js` |
 | Q9 | What is the monthly revenue and churn per plan? | `$lookup` on plans, `$group` by month, `$facet` | `queries/complex/q09-revenue-and-churn.js` |
 | Q10 | How does device usage change by hour of day? | `$hour`, `$bucket`, `$setWindowFields` | `queries/complex/q10-device-usage-by-hour.js` |
+
+Q4 reads `demoUserId` (a 24-character ObjectId hex) from `data/manifest.json`. Q5 reads `demoActor` (an exact credited cast name) from the same file. Both use `require('fs')`.
+
+Q8 uses each user's IANA `timezone` for local-day grouping. It counts distinct **completed** season and episode pairs.
+
+Q9 reports UTC payment months with payments. It sums actual payment amounts. Churn is the number of users whose subscription ended with status `cancelled` in that month, divided by the subscribers active at the month's start. Churn is null when the denominator is zero.
+
+Q10 uses each user's local hour. Its running share is the cumulative fraction of a device's events across hours 0 to 23. It is not a trend over calendar time.
 
 ## Extra queries (optional)
 

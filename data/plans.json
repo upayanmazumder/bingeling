@@ -1,0 +1,1 @@
+[{"_id":"basic","name":"basic","priceInr":199,"screens":1,"maxQuality":"HD"},{"_id":"standard","name":"standard","priceInr":499,"screens":2,"maxQuality":"Full HD"},{"_id":"premium","name":"premium","priceInr":649,"screens":4,"maxQuality":"4K"}]

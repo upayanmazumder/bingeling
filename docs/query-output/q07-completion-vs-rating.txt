@@ -1,0 +1,25 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/q07-completion-vs-rating.js
+{
+  totalMovies: 400,
+  showingFirst: 20
+}
+{"releaseYear":2011,"title":"Jiro Dreams of Sushi","watches":55,"completedWatches":54,"completionRatePct":98.18,"reviewCount":1,"averageRating":4.5}
+{"releaseYear":2019,"title":"Klaus","watches":30,"completedWatches":29,"completionRatePct":96.67,"reviewCount":1,"averageRating":4}
+{"releaseYear":2010,"title":"Senna","watches":54,"completedWatches":52,"completionRatePct":96.3,"reviewCount":6,"averageRating":3.67}
+{"releaseYear":1969,"title":"True Grit","watches":44,"completedWatches":42,"completionRatePct":95.45,"reviewCount":7,"averageRating":3.57}
+{"releaseYear":2015,"title":"Spotlight","watches":131,"completedWatches":125,"completionRatePct":95.42,"reviewCount":6,"averageRating":4}
+{"releaseYear":2019,"title":"El Camino: A Breaking Bad Movie","watches":43,"completedWatches":41,"completionRatePct":95.35,"reviewCount":4,"averageRating":3.38}
+{"releaseYear":1993,"title":"Schindler's List","watches":233,"completedWatches":222,"completionRatePct":95.28,"reviewCount":18,"averageRating":3.92}
+{"releaseYear":2016,"title":"Hunt for the Wilderpeople","watches":84,"completedWatches":80,"completionRatePct":95.24,"reviewCount":10,"averageRating":3.9}
+{"releaseYear":2010,"title":"Inception","watches":230,"completedWatches":219,"completionRatePct":95.22,"reviewCount":12,"averageRating":3.79}
+{"releaseYear":1998,"title":"American History X","watches":242,"completedWatches":230,"completionRatePct":95.04,"reviewCount":25,"averageRating":4.02}
+{"releaseYear":2014,"title":"Nightcrawler","watches":181,"completedWatches":172,"completionRatePct":95.03,"reviewCount":16,"averageRating":4}
+{"releaseYear":1982,"title":"Monty Python: Live at The Hollywood Bowl","watches":40,"completedWatches":38,"completionRatePct":95,"reviewCount":3,"averageRating":4.17}
+{"releaseYear":2018,"title":"Spider-Man: Into the Spider-Verse","watches":117,"completedWatches":111,"completionRatePct":94.87,"reviewCount":16,"averageRating":4.16}
+{"releaseYear":2002,"title":"Catch Me If You Can","watches":244,"completedWatches":231,"completionRatePct":94.67,"reviewCount":25,"averageRating":3.92}
+{"releaseYear":1994,"title":"Pulp Fiction","watches":281,"completedWatches":266,"completionRatePct":94.66,"reviewCount":29,"averageRating":4.34}
+{"releaseYear":2013,"title":"Her","watches":184,"completedWatches":174,"completionRatePct":94.57,"reviewCount":22,"averageRating":4.07}
+{"releaseYear":1997,"title":"Donnie Brasco","watches":147,"completedWatches":139,"completionRatePct":94.56,"reviewCount":13,"averageRating":3.65}
+{"releaseYear":1975,"title":"Jaws","watches":243,"completedWatches":229,"completionRatePct":94.24,"reviewCount":28,"averageRating":3.84}
+{"releaseYear":1996,"title":"Trainspotting","watches":243,"completedWatches":229,"completionRatePct":94.24,"reviewCount":22,"averageRating":3.86}
+{"releaseYear":2012,"title":"Django Unchained","watches":238,"completedWatches":224,"completionRatePct":94.12,"reviewCount":22,"averageRating":4.2}

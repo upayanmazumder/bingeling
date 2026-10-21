@@ -1,0 +1,9 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/q06-top-genres-by-country.js
+{
+  countries: 4,
+  genresPerCountry: 5
+}
+{"topGenres":[{"genre":"Drama","totalMinutes":580075,"watchEvents":4897},{"genre":"Action","totalMinutes":513244,"watchEvents":4988},{"genre":"Comedy","totalMinutes":440062,"watchEvents":4885},{"genre":"Sci-Fi","totalMinutes":211244,"watchEvents":2193},{"genre":"Classic","totalMinutes":201907,"watchEvents":1687}],"country":"CA"}
+{"topGenres":[{"genre":"Drama","totalMinutes":569915,"watchEvents":4860},{"genre":"Action","totalMinutes":504370,"watchEvents":4964},{"genre":"Comedy","totalMinutes":428851,"watchEvents":4785},{"genre":"Sci-Fi","totalMinutes":207042,"watchEvents":2164},{"genre":"Classic","totalMinutes":201454,"watchEvents":1708}],"country":"GB"}
+{"topGenres":[{"genre":"Drama","totalMinutes":537635,"watchEvents":4552},{"genre":"Action","totalMinutes":462402,"watchEvents":4503},{"genre":"Comedy","totalMinutes":394917,"watchEvents":4370},{"genre":"Classic","totalMinutes":195290,"watchEvents":1600},{"genre":"Sci-Fi","totalMinutes":188585,"watchEvents":1975}],"country":"IN"}
+{"topGenres":[{"genre":"Drama","totalMinutes":537669,"watchEvents":4548},{"genre":"Action","totalMinutes":463253,"watchEvents":4506},{"genre":"Comedy","totalMinutes":402808,"watchEvents":4479},{"genre":"Sci-Fi","totalMinutes":188076,"watchEvents":1944},{"genre":"Classic","totalMinutes":184411,"watchEvents":1532}],"country":"US"}
