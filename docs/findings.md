@@ -18,8 +18,8 @@ Record evidence before using a number in the report. `F` entries describe observ
 | F-07 | MovieLens has no viewing, device, subscription, payment, or region data. | These fields are generated. Three synthetic events form the Q8 binge case. Payments are fully synthetic. |
 | F-08 | The full flow from an empty volume takes about 22 seconds on the build host. | `bash scripts/demo.sh` loaded 6 collections, validated, and ran 10 queries. |
 | F-09 | Q11 shows the index effect on the Q4 lookup. | The collection scan examined 50,000 documents. The index scan examined 10 documents and 10 keys. |
-| F-10 | A source check on 22 October 2026 reached 25 of 29 cited URLs. | Four URLs returned HTTP 403 to an automated request. The author must read them. See `docs/domain-analysis.md`. |
+| F-10 | A source test on 22 October 2026 reached 25 of 29 cited URLs. | Four URLs returned HTTP 403 to an automated request. The author must read them. See `docs/domain-analysis.md`. |
 | D-06 | Build the report as Markdown, then Typst, then PDF. | Typst is small and the build works in CI. The course template, citation style, and page limit are still unknown. |
 | D-07 | Capture screenshots in the Lab Terminal app. One `mongosh` session runs every query with `load()`. | `scripts/capture-lab-terminal.sh` drives the real window with `wtype` and captures it with `grim`. |
-| D-08 | The course accepts a PDF without a template, requires IEEE citations, and limits the report to under 15 pages. The extra queries stay out of the report. The author confirmed this on 22 October 2026. | The report has 14 pages and numeric IEEE references. |
+| D-08 | The course accepts a PDF without a template, requires IEEE citations, and limits the report to under 15 pages. The extra queries stay out of the report. The author stated this on 22 October 2026. | The report has 14 pages and numeric IEEE references. |
 | D-09 | The author reviewed all 13 screenshots and found them fine. | Issue #43 closes. |
