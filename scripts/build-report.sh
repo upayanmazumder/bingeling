@@ -28,15 +28,16 @@ else
     exit 1
 fi
 
-if command -v typst >/dev/null 2>&1; then
-    typst compile --root "$root" "$typst_file" "$pdf_file"
-elif command -v docker >/dev/null 2>&1; then
-    docker run --rm --user "$(id -u):$(id -g)" \
-        --volume "$root:/workspace" --workdir /workspace \
-        ghcr.io/typst/typst:0.13.1 compile --root /workspace \
-        "$typst_file" "$pdf_file"
+typst_bin=
+if [ "${BINGELING_FORCE_TYPST_DOWNLOAD:-}" != 1 ] && command -v typst >/dev/null 2>&1; then
+    typst_bin=typst
 else
-    printf '%s\n' 'Install Typst or Docker to render the PDF.' >&2
-    exit 1
+    typst_bin="$root/report/.build/typst-x86_64-unknown-linux-musl/typst"
+    if [ ! -x "$typst_bin" ]; then
+        mkdir -p "$root/report/.build"
+        curl -fsSL "https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz" \
+            | tar -xJ -C "$root/report/.build"
+    fi
 fi
+"$typst_bin" compile --root "$root" "$typst_file" "$pdf_file"
 printf 'Built %s\n' "$pdf_file"
