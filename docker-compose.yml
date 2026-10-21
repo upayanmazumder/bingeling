@@ -1,0 +1,13 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: streamdb-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./:/workspace:ro
+    working_dir: /workspace
+
+volumes:
+  mongo-data:
