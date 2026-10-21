@@ -3,4 +3,4 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
   totalBinges: 1,
   showingTop: 1
 }
-{"user":"Meera Singh","timezone":"Asia/Kolkata","series":"Blood & Water","distinctEpisodes":3,"episodes":[{"season":1,"episode":3},{"season":1,"episode":2},{"season":1,"episode":1}],"userId":{"$oid":"01000000000000000000001c"},"titleId":{"$oid":"020000000000000000000002"},"localDay":{"$date":"2023-06-11T18:30:00Z"}}
+{"user":"Meera Singh","timezone":"Asia/Kolkata","series":"Blood & Water","distinctEpisodes":3,"episodes":[{"season":1,"episode":1},{"season":1,"episode":3},{"season":1,"episode":2}],"userId":{"$oid":"01000000000000000000001c"},"titleId":{"$oid":"020000000000000000000002"},"localDay":{"$date":"2023-06-11T18:30:00Z"}}

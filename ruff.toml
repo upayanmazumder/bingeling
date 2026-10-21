@@ -1,0 +1,9 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "W"]
+
+[lint.per-file-ignores]
+"report/build_report.py" = ["E501"]
+"scripts/generate_data.py" = ["E501"]

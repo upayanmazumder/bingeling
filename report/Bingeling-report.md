@@ -280,10 +280,11 @@ For every question, the JavaScript block below is copied directly from the named
 // Collections: titles.
 const filter = { type: 'movie', genres: 'Thriller', releaseYear: { $gt: 2018 } };
 printjson({ totalMatches: db.titles.countDocuments(filter), showingNewest: 10 });
-db.titles.find(
-  filter,
-  { name: 1, releaseYear: 1, genres: 1, language: 1 }
-).sort({ releaseYear: -1, name: 1 }).limit(10).forEach(row => printjson(EJSON.stringify(row)));
+db.titles
+  .find(filter, { name: 1, releaseYear: 1, genres: 1, language: 1 })
+  .sort({ releaseYear: -1, name: 1 })
+  .limit(10)
+  .forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q01-thrillers-after-2018.txt`
@@ -320,10 +321,12 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q
 // Q2: How many users have an active premium subscription?
 // Intent: Count users whose subscription is both premium and active.
 // Collections: users.
-printjson({ activePremiumUsers: db.users.countDocuments({
-  'subscription.plan': 'premium',
-  'subscription.status': 'active'
-}) });
+printjson({
+  activePremiumUsers: db.users.countDocuments({
+    'subscription.plan': 'premium',
+    'subscription.status': 'active'
+  })
+});
 ```
 
 **Saved terminal output:** `docs/query-output/q02-active-premium-count.txt`
@@ -379,12 +382,28 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q
 // Q4: Show the 10 most recent watch events of one user.
 // Intent: Use the fixed demo user anchor and present their latest activity.
 // Collections: watch_events; anchor from data/manifest.json.
-const demoUserId = ObjectId(JSON.parse(require('fs').readFileSync('data/manifest.json', 'utf8')).demoUserId);
+const demoUserId = ObjectId(
+  JSON.parse(require('fs').readFileSync('data/manifest.json', 'utf8')).demoUserId
+);
 printjson({ userId: demoUserId, showingNewest: 10 });
-db.watch_events.find(
-  { userId: demoUserId },
-  { titleName: 1, titleId: 1, startedAt: 1, minutesWatched: 1, completed: 1, device: 1, season: 1, episode: 1, origin: 1 }
-).sort({ startedAt: -1, _id: -1 }).limit(10).forEach(row => printjson(EJSON.stringify(row)));
+db.watch_events
+  .find(
+    { userId: demoUserId },
+    {
+      titleName: 1,
+      titleId: 1,
+      startedAt: 1,
+      minutesWatched: 1,
+      completed: 1,
+      device: 1,
+      season: 1,
+      episode: 1,
+      origin: 1
+    }
+  )
+  .sort({ startedAt: -1, _id: -1 })
+  .limit(10)
+  .forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q04-recent-watches.txt`
@@ -424,10 +443,11 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q
 const demoActor = JSON.parse(require('fs').readFileSync('data/manifest.json', 'utf8')).demoActor;
 const filter = { cast: { $elemMatch: { name: demoActor } } };
 printjson({ actor: demoActor, totalMatches: db.titles.countDocuments(filter), showingFirst: 10 });
-db.titles.find(
-  filter,
-  { name: 1, type: 1, releaseYear: 1, cast: 1 }
-).sort({ name: 1 }).limit(10).forEach(row => printjson(EJSON.stringify(row)));
+db.titles
+  .find(filter, { name: 1, type: 1, releaseYear: 1, cast: 1 })
+  .sort({ name: 1 })
+  .limit(10)
+  .forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q05-titles-by-actor.txt`
@@ -468,30 +488,42 @@ For every question, the JavaScript block below is copied directly from the named
 // Q6: What are the top 5 genres by total watch minutes in each country?
 // Intent: Attribute each watch's minutes to every genre of its title and rank within country.
 // Collections: watch_events, users, titles.
-const countries = db.watch_events.aggregate([
-  { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
-  { $unwind: '$user' },
-  { $lookup: { from: 'titles', localField: 'titleId', foreignField: '_id', as: 'title' } },
-  { $unwind: '$title' },
-  { $unwind: '$title.genres' },
-  { $group: {
-    _id: { country: '$user.country', genre: '$title.genres' },
-    totalMinutes: { $sum: '$minutesWatched' },
-    watchEvents: { $sum: 1 }
-  } },
-  { $group: {
-    _id: '$_id.country',
-    topGenres: { $topN: {
-      n: 5,
-      sortBy: { totalMinutes: -1, '_id.genre': 1 },
-      output: { genre: '$_id.genre', totalMinutes: '$totalMinutes', watchEvents: '$watchEvents' }
-    } }
-  } },
-  { $project: { _id: 0, country: '$_id', topGenres: 1 } },
-  { $sort: { country: 1 } }
-]).toArray();
+const countries = db.watch_events
+  .aggregate([
+    { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
+    { $unwind: '$user' },
+    { $lookup: { from: 'titles', localField: 'titleId', foreignField: '_id', as: 'title' } },
+    { $unwind: '$title' },
+    { $unwind: '$title.genres' },
+    {
+      $group: {
+        _id: { country: '$user.country', genre: '$title.genres' },
+        totalMinutes: { $sum: '$minutesWatched' },
+        watchEvents: { $sum: 1 }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.country',
+        topGenres: {
+          $topN: {
+            n: 5,
+            sortBy: { totalMinutes: -1, '_id.genre': 1 },
+            output: {
+              genre: '$_id.genre',
+              totalMinutes: '$totalMinutes',
+              watchEvents: '$watchEvents'
+            }
+          }
+        }
+      }
+    },
+    { $project: { _id: 0, country: '$_id', topGenres: 1 } },
+    { $sort: { country: 1 } }
+  ])
+  .toArray();
 printjson({ countries: countries.length, genresPerCountry: 5 });
-countries.forEach(row => printjson(EJSON.stringify(row)));
+countries.forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q06-top-genres-by-country.txt`
@@ -522,48 +554,76 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
 // Q7: What is the completion rate of each movie, with average rating?
 // Intent: Count completed movie watches and independently average title reviews (no fan-out).
 // Collections: titles, watch_events, reviews.
-const movies = db.titles.aggregate([
-  { $match: { type: 'movie' } },
-  { $lookup: {
-    from: 'watch_events', let: { titleId: '$_id' },
-    pipeline: [
-      { $match: { $expr: { $eq: ['$titleId', '$$titleId'] } } },
-      { $group: {
-        _id: null,
-        watches: { $sum: 1 },
-        completedWatches: { $sum: { $cond: ['$completed', 1, 0] } }
-      } }
-    ], as: 'watchStats'
-  } },
-  { $lookup: {
-    from: 'reviews', let: { titleId: '$_id' },
-    pipeline: [
-      { $match: { $expr: { $eq: ['$titleId', '$$titleId'] } } },
-      { $group: { _id: null, averageRating: { $avg: '$rating' }, reviewCount: { $sum: 1 } } }
-    ], as: 'reviewStats'
-  } },
-  { $set: {
-    watchStats: { $first: '$watchStats' },
-    reviewStats: { $first: '$reviewStats' }
-  } },
-  { $project: {
-    _id: 0, title: '$name', releaseYear: 1,
-    watches: { $ifNull: ['$watchStats.watches', 0] },
-    completedWatches: { $ifNull: ['$watchStats.completedWatches', 0] },
-    completionRatePct: {
-      $cond: [
-        { $gt: ['$watchStats.watches', 0] },
-        { $round: [{ $multiply: [{ $divide: ['$watchStats.completedWatches', '$watchStats.watches'] }, 100] }, 2] },
-        null
-      ]
+const movies = db.titles
+  .aggregate([
+    { $match: { type: 'movie' } },
+    {
+      $lookup: {
+        from: 'watch_events',
+        let: { titleId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$titleId', '$$titleId'] } } },
+          {
+            $group: {
+              _id: null,
+              watches: { $sum: 1 },
+              completedWatches: { $sum: { $cond: ['$completed', 1, 0] } }
+            }
+          }
+        ],
+        as: 'watchStats'
+      }
     },
-    reviewCount: { $ifNull: ['$reviewStats.reviewCount', 0] },
-    averageRating: { $round: ['$reviewStats.averageRating', 2] }
-  } },
-  { $sort: { completionRatePct: -1, title: 1 } }
-]).toArray();
+    {
+      $lookup: {
+        from: 'reviews',
+        let: { titleId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$titleId', '$$titleId'] } } },
+          { $group: { _id: null, averageRating: { $avg: '$rating' }, reviewCount: { $sum: 1 } } }
+        ],
+        as: 'reviewStats'
+      }
+    },
+    {
+      $set: {
+        watchStats: { $first: '$watchStats' },
+        reviewStats: { $first: '$reviewStats' }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        title: '$name',
+        releaseYear: 1,
+        watches: { $ifNull: ['$watchStats.watches', 0] },
+        completedWatches: { $ifNull: ['$watchStats.completedWatches', 0] },
+        completionRatePct: {
+          $cond: [
+            { $gt: ['$watchStats.watches', 0] },
+            {
+              $round: [
+                {
+                  $multiply: [
+                    { $divide: ['$watchStats.completedWatches', '$watchStats.watches'] },
+                    100
+                  ]
+                },
+                2
+              ]
+            },
+            null
+          ]
+        },
+        reviewCount: { $ifNull: ['$reviewStats.reviewCount', 0] },
+        averageRating: { $round: ['$reviewStats.averageRating', 2] }
+      }
+    },
+    { $sort: { completionRatePct: -1, title: 1 } }
+  ])
+  .toArray();
 printjson({ totalMovies: movies.length, showingFirst: Math.min(20, movies.length) });
-movies.slice(0, 20).forEach(row => printjson(EJSON.stringify(row)));
+movies.slice(0, 20).forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q07-completion-vs-rating.txt`
@@ -610,48 +670,74 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
 // Q8: Which users binge-watched 3 or more distinct episodes of one series on one local day?
 // Intent: Deduplicate completed episodes before counting, using each user's IANA time zone.
 // Collections: watch_events, users, titles.
-const result = db.watch_events.aggregate([
-  { $match: { completed: true, season: { $exists: true }, episode: { $exists: true } } },
-  { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
-  { $unwind: '$user' },
-  { $lookup: { from: 'titles', localField: 'titleId', foreignField: '_id', as: 'title' } },
-  { $unwind: '$title' },
-  { $match: { 'title.type': 'series' } },
-  { $set: {
-    localDay: { $dateTrunc: {
-      date: '$startedAt', unit: 'day', timezone: '$user.timezone'
-    } }
-  } },
-  { $group: {
-    _id: {
-      userId: '$userId', titleId: '$titleId', localDay: '$localDay',
-      season: '$season', episode: '$episode'
+const result = db.watch_events
+  .aggregate([
+    { $match: { completed: true, season: { $exists: true }, episode: { $exists: true } } },
+    { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
+    { $unwind: '$user' },
+    { $lookup: { from: 'titles', localField: 'titleId', foreignField: '_id', as: 'title' } },
+    { $unwind: '$title' },
+    { $match: { 'title.type': 'series' } },
+    {
+      $set: {
+        localDay: {
+          $dateTrunc: {
+            date: '$startedAt',
+            unit: 'day',
+            timezone: '$user.timezone'
+          }
+        }
+      }
     },
-    name: { $first: '$user.name' },
-    timezone: { $first: '$user.timezone' },
-    title: { $first: '$title.name' }
-  } },
-  { $group: {
-    _id: { userId: '$_id.userId', titleId: '$_id.titleId', localDay: '$_id.localDay' },
-    user: { $first: '$name' }, timezone: { $first: '$timezone' },
-    series: { $first: '$title' },
-    distinctEpisodes: { $sum: 1 },
-    episodes: { $push: { season: '$_id.season', episode: '$_id.episode' } }
-  } },
-  { $match: { distinctEpisodes: { $gte: 3 } } },
-  { $project: {
-    _id: 0, userId: '$_id.userId', titleId: '$_id.titleId',
-    user: 1, series: 1, localDay: '$_id.localDay', timezone: 1,
-    distinctEpisodes: 1, episodes: 1
-  } },
-  { $sort: { distinctEpisodes: -1, localDay: -1, user: 1 } },
-  { $facet: {
-    matches: [{ $count: 'count' }],
-    rows: [{ $limit: 25 }]
-  } }
-]).toArray()[0];
+    {
+      $group: {
+        _id: {
+          userId: '$userId',
+          titleId: '$titleId',
+          localDay: '$localDay',
+          season: '$season',
+          episode: '$episode'
+        },
+        name: { $first: '$user.name' },
+        timezone: { $first: '$user.timezone' },
+        title: { $first: '$title.name' }
+      }
+    },
+    {
+      $group: {
+        _id: { userId: '$_id.userId', titleId: '$_id.titleId', localDay: '$_id.localDay' },
+        user: { $first: '$name' },
+        timezone: { $first: '$timezone' },
+        series: { $first: '$title' },
+        distinctEpisodes: { $sum: 1 },
+        episodes: { $push: { season: '$_id.season', episode: '$_id.episode' } }
+      }
+    },
+    { $match: { distinctEpisodes: { $gte: 3 } } },
+    {
+      $project: {
+        _id: 0,
+        userId: '$_id.userId',
+        titleId: '$_id.titleId',
+        user: 1,
+        series: 1,
+        localDay: '$_id.localDay',
+        timezone: 1,
+        distinctEpisodes: 1,
+        episodes: 1
+      }
+    },
+    { $sort: { distinctEpisodes: -1, localDay: -1, user: 1 } },
+    {
+      $facet: {
+        matches: [{ $count: 'count' }],
+        rows: [{ $limit: 25 }]
+      }
+    }
+  ])
+  .toArray()[0];
 printjson({ totalBinges: result.matches[0]?.count || 0, showingTop: result.rows.length });
-result.rows.forEach(row => printjson(EJSON.stringify(row)));
+result.rows.forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q08-binge-watchers.txt`
@@ -662,7 +748,7 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
   totalBinges: 1,
   showingTop: 1
 }
-{"user":"Meera Singh","timezone":"Asia/Kolkata","series":"Blood & Water","distinctEpisodes":3,"episodes":[{"season":1,"episode":3},{"season":1,"episode":2},{"season":1,"episode":1}],"userId":{"$oid":"01000000000000000000001c"},"titleId":{"$oid":"020000000000000000000002"},"localDay":{"$date":"2023-06-11T18:30:00Z"}}
+{"user":"Meera Singh","timezone":"Asia/Kolkata","series":"Blood & Water","distinctEpisodes":3,"episodes":[{"season":1,"episode":1},{"season":1,"episode":3},{"season":1,"episode":2}],"userId":{"$oid":"01000000000000000000001c"},"titleId":{"$oid":"020000000000000000000002"},"localDay":{"$date":"2023-06-11T18:30:00Z"}}
 ```
 
 ![Q8 captured command and output](../screenshots/q08-binge-watchers.png){ width=90% }
@@ -680,62 +766,112 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
 // Intent: Sum actual payments by UTC payment month; churn is cancellations in that month
 // divided by subscribers active at its start (null when that denominator is zero).
 // Collections: payments, plans, users. Months shown have at least one payment.
-const monthly = db.payments.aggregate([
-  { $group: {
-    _id: { plan: '$plan', month: { $dateTrunc: { date: '$paidAt', unit: 'month', timezone: 'UTC' } } },
-    revenueInr: { $sum: '$amountInr' }, payments: { $sum: 1 }
-  } },
-  { $lookup: { from: 'plans', localField: '_id.plan', foreignField: 'name', as: 'planDetails' } },
-  { $unwind: '$planDetails' },
-  { $set: { nextMonth: { $dateAdd: { startDate: '$_id.month', unit: 'month', amount: 1 } } } },
-  { $lookup: {
-    from: 'users',
-    let: { plan: '$_id.plan', month: '$_id.month', nextMonth: '$nextMonth' },
-    pipeline: [
-      { $match: { $expr: { $eq: ['$subscription.plan', '$$plan'] } } },
-      { $facet: {
-        activeAtMonthStart: [
-          { $match: { $expr: { $and: [
-            { $lte: ['$subscription.startedAt', '$$month'] },
-            { $or: [
-              { $eq: ['$subscription.endedAt', null] },
-              { $gt: ['$subscription.endedAt', '$$month'] }
-            ] }
-          ] } } },
-          { $count: 'count' }
+const monthly = db.payments
+  .aggregate([
+    {
+      $group: {
+        _id: {
+          plan: '$plan',
+          month: { $dateTrunc: { date: '$paidAt', unit: 'month', timezone: 'UTC' } }
+        },
+        revenueInr: { $sum: '$amountInr' },
+        payments: { $sum: 1 }
+      }
+    },
+    { $lookup: { from: 'plans', localField: '_id.plan', foreignField: 'name', as: 'planDetails' } },
+    { $unwind: '$planDetails' },
+    { $set: { nextMonth: { $dateAdd: { startDate: '$_id.month', unit: 'month', amount: 1 } } } },
+    {
+      $lookup: {
+        from: 'users',
+        let: { plan: '$_id.plan', month: '$_id.month', nextMonth: '$nextMonth' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$subscription.plan', '$$plan'] } } },
+          {
+            $facet: {
+              activeAtMonthStart: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $lte: ['$subscription.startedAt', '$$month'] },
+                        {
+                          $or: [
+                            { $eq: ['$subscription.endedAt', null] },
+                            { $gt: ['$subscription.endedAt', '$$month'] }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                { $count: 'count' }
+              ],
+              cancelledDuringMonth: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ['$subscription.status', 'cancelled'] },
+                        { $gte: ['$subscription.endedAt', '$$month'] },
+                        { $lt: ['$subscription.endedAt', '$$nextMonth'] }
+                      ]
+                    }
+                  }
+                },
+                { $count: 'count' }
+              ]
+            }
+          }
         ],
-        cancelledDuringMonth: [
-          { $match: { $expr: { $and: [
-            { $eq: ['$subscription.status', 'cancelled'] },
-            { $gte: ['$subscription.endedAt', '$$month'] },
-            { $lt: ['$subscription.endedAt', '$$nextMonth'] }
-          ] } } },
-          { $count: 'count' }
-        ]
-      } }
-    ], as: 'subscriberStats'
-  } },
-  { $set: {
-    activeAtMonthStart: { $ifNull: [{ $first: { $first: '$subscriberStats.activeAtMonthStart' } }, null] },
-    cancelledDuringMonth: { $ifNull: [{ $first: { $first: '$subscriberStats.cancelledDuringMonth' } }, null] }
-  } },
-  { $set: {
-    activeAtMonthStart: { $ifNull: ['$activeAtMonthStart.count', 0] },
-    cancelledDuringMonth: { $ifNull: ['$cancelledDuringMonth.count', 0] }
-  } },
-  { $project: {
-    _id: 0, month: '$_id.month', plan: '$_id.plan', planPriceInr: '$planDetails.priceInr',
-    payments: 1, revenueInr: 1, activeAtMonthStart: 1, cancelledDuringMonth: 1,
-    churnRatePct: { $cond: [
-      { $gt: ['$activeAtMonthStart', 0] },
-      { $round: [{ $multiply: [{ $divide: ['$cancelledDuringMonth', '$activeAtMonthStart'] }, 100] }, 2] },
-      null
-    ] }
-  } },
-  { $sort: { month: 1, plan: 1 } }
-]).toArray();
+        as: 'subscriberStats'
+      }
+    },
+    {
+      $set: {
+        activeAtMonthStart: {
+          $ifNull: [{ $first: { $first: '$subscriberStats.activeAtMonthStart' } }, null]
+        },
+        cancelledDuringMonth: {
+          $ifNull: [{ $first: { $first: '$subscriberStats.cancelledDuringMonth' } }, null]
+        }
+      }
+    },
+    {
+      $set: {
+        activeAtMonthStart: { $ifNull: ['$activeAtMonthStart.count', 0] },
+        cancelledDuringMonth: { $ifNull: ['$cancelledDuringMonth.count', 0] }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        month: '$_id.month',
+        plan: '$_id.plan',
+        planPriceInr: '$planDetails.priceInr',
+        payments: 1,
+        revenueInr: 1,
+        activeAtMonthStart: 1,
+        cancelledDuringMonth: 1,
+        churnRatePct: {
+          $cond: [
+            { $gt: ['$activeAtMonthStart', 0] },
+            {
+              $round: [
+                { $multiply: [{ $divide: ['$cancelledDuringMonth', '$activeAtMonthStart'] }, 100] },
+                2
+              ]
+            },
+            null
+          ]
+        }
+      }
+    },
+    { $sort: { month: 1, plan: 1 } }
+  ])
+  .toArray();
 printjson({ totalPlanMonths: monthly.length, showingFirst: Math.min(20, monthly.length) });
-monthly.slice(0, 20).forEach(row => printjson(EJSON.stringify(row)));
+monthly.slice(0, 20).forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q09-revenue-and-churn.txt`
@@ -783,47 +919,77 @@ Command: docker compose exec -T mongo mongosh --quiet bingeling queries/complex/
 // Intent: Compare local-hour device use, daypart totals, and each device's cumulative
 // share of its own daily-profile events as hours advance (not chronological dates).
 // Collections: watch_events, users (IANA timezone per user).
-const usage = db.watch_events.aggregate([
-  { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
-  { $unwind: '$user' },
-  { $set: { localHour: { $hour: { date: '$startedAt', timezone: '$user.timezone' } } } },
-  { $facet: {
-    hourlyByDevice: [
-      { $group: {
-        _id: { device: '$device', hour: '$localHour' },
-        events: { $sum: 1 }, minutesWatched: { $sum: '$minutesWatched' }
-      } },
-      { $setWindowFields: {
-        partitionBy: '$_id.device', sortBy: { '_id.hour': 1 },
-        output: {
-          runningEvents: { $sum: '$events', window: { documents: ['unbounded', 'current'] } },
-          deviceEvents: { $sum: '$events', window: { documents: ['unbounded', 'unbounded'] } }
-        }
-      } },
-      { $project: {
-        _id: 0, device: '$_id.device', hour: '$_id.hour', events: 1,
-        minutesWatched: 1, runningEvents: 1,
-        runningSharePct: { $round: [{ $multiply: [{ $divide: ['$runningEvents', '$deviceEvents'] }, 100] }, 2] }
-      } },
-      { $sort: { hour: 1, device: 1 } }
-    ],
-    dayparts: [
-      { $bucket: {
-        groupBy: '$localHour', boundaries: [0, 6, 12, 18, 24],
-        output: { events: { $sum: 1 }, minutesWatched: { $sum: '$minutesWatched' } }
-      } },
-      { $project: {
-        _id: 0, startHour: '$_id',
-        daypart: { $switch: { branches: [
-          { case: { $eq: ['$_id', 0] }, then: 'night (00–06)' },
-          { case: { $eq: ['$_id', 6] }, then: 'morning (06–12)' },
-          { case: { $eq: ['$_id', 12] }, then: 'afternoon (12–18)' }
-        ], default: 'evening (18–24)' } },
-        events: 1, minutesWatched: 1
-      } }
-    ]
-  } }
-]).toArray()[0];
+const usage = db.watch_events
+  .aggregate([
+    { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'user' } },
+    { $unwind: '$user' },
+    { $set: { localHour: { $hour: { date: '$startedAt', timezone: '$user.timezone' } } } },
+    {
+      $facet: {
+        hourlyByDevice: [
+          {
+            $group: {
+              _id: { device: '$device', hour: '$localHour' },
+              events: { $sum: 1 },
+              minutesWatched: { $sum: '$minutesWatched' }
+            }
+          },
+          {
+            $setWindowFields: {
+              partitionBy: '$_id.device',
+              sortBy: { '_id.hour': 1 },
+              output: {
+                runningEvents: { $sum: '$events', window: { documents: ['unbounded', 'current'] } },
+                deviceEvents: { $sum: '$events', window: { documents: ['unbounded', 'unbounded'] } }
+              }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              device: '$_id.device',
+              hour: '$_id.hour',
+              events: 1,
+              minutesWatched: 1,
+              runningEvents: 1,
+              runningSharePct: {
+                $round: [{ $multiply: [{ $divide: ['$runningEvents', '$deviceEvents'] }, 100] }, 2]
+              }
+            }
+          },
+          { $sort: { hour: 1, device: 1 } }
+        ],
+        dayparts: [
+          {
+            $bucket: {
+              groupBy: '$localHour',
+              boundaries: [0, 6, 12, 18, 24],
+              output: { events: { $sum: 1 }, minutesWatched: { $sum: '$minutesWatched' } }
+            }
+          },
+          {
+            $project: {
+              _id: 0,
+              startHour: '$_id',
+              daypart: {
+                $switch: {
+                  branches: [
+                    { case: { $eq: ['$_id', 0] }, then: 'night (00–06)' },
+                    { case: { $eq: ['$_id', 6] }, then: 'morning (06–12)' },
+                    { case: { $eq: ['$_id', 12] }, then: 'afternoon (12–18)' }
+                  ],
+                  default: 'evening (18–24)'
+                }
+              },
+              events: 1,
+              minutesWatched: 1
+            }
+          }
+        ]
+      }
+    }
+  ])
+  .toArray()[0];
 printjson({ hourlyDeviceRows: usage.hourlyByDevice.length, dayparts: usage.dayparts.length });
 const byHour = new Map();
 for (const row of usage.hourlyByDevice) {
@@ -831,7 +997,7 @@ for (const row of usage.hourlyByDevice) {
   byHour.get(row.hour).push(row);
 }
 for (const [hour, devices] of byHour) printjson(EJSON.stringify({ hour, devices }));
-usage.dayparts.forEach(row => printjson(EJSON.stringify(row)));
+usage.dayparts.forEach((row) => printjson(EJSON.stringify(row)));
 ```
 
 **Saved terminal output:** `docs/query-output/q10-device-usage-by-hour.txt`
@@ -888,20 +1054,20 @@ Netflix catalogue labels are a dated sample. MovieLens ratings are not viewing l
 
 # References
 
-- [R1] Project domain analysis. docs/domain-analysis.md
-- [R2] Project data model. docs/data-model.md
-- [R3] Project fixed questions. docs/questions.md
-- [R4] Project guidelines. GUIDELINES.md
-- [R5] Netflix, What We Watched: The Second Half of 2025. https://about.netflix.com/news/what-we-watched-the-second-half-of-2025
-- [R6] FICCI-EY, Indian media and entertainment sector in 2025. https://www.ey.com/en_in/newsroom/2026/03/india-s-media-and-entertainment-sector-grew-9-percent-to-inr-2-point-78-trillion-in-2025-driven-by-digital-and-live-experiences-ficci-ey-report
-- [R7] Government of India, 2024 video subscription revenue. https://www.pib.gov.in/PressReleasePage.aspx?PRID=2205233&lang=2&reg=3
-- [R8] MongoDB, Data Modeling Best Practices. https://www.mongodb.com/docs/manual/data-modeling/best-practices/
-- [R9] MongoDB, Unbounded Arrays Anti-Pattern. https://www.mongodb.com/docs/manual/data-modeling/design-antipatterns/unbounded-arrays/
-- [R10] MongoDB, SonyLIV content management case study. https://www.mongodb.com/company/blog/innovation/sonyliv-improves-cms-performance-by-98-percent-on-atlas
-- [R11] IMDb, Non-Commercial Datasets. https://data.imdb.com/non-commercial-datasets/
-- [R12] MovieLens 32M, README and licence. https://files.grouplens.org/datasets/movielens/ml-32m-README.html
-- [R13] Kaggle, Netflix titles dataset metadata. https://www.kaggle.com/api/v1/datasets/view/shivamb/netflix-shows
-- [R14] ZEE5 FY25 viewing report, Deccan Chronicle. https://www.deccanchronicle.com/entertainment/ott/zee5-clocks-105-billion-watch-minutes-in-fy25-amid-renewed-regional-push-1898817
-- [R15] Harper, F. Maxwell, and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems 5(4), Article 19. https://doi.org/10.1145/2827872
+- [R1] Project domain analysis. docs/domain-analysis.md.
+- [R2] Project data model. docs/data-model.md.
+- [R3] Project fixed questions. docs/questions.md.
+- [R4] Project guidelines. GUIDELINES.md.
+- [R5] Netflix, What We Watched: The Second Half of 2025. https://about.netflix.com/news/what-we-watched-the-second-half-of-2025. Accessed 22 October 2026.
+- [R6] FICCI-EY, Indian media and entertainment sector in 2025. https://www.ey.com/en_in/newsroom/2026/03/india-s-media-and-entertainment-sector-grew-9-percent-to-inr-2-point-78-trillion-in-2025-driven-by-digital-and-live-experiences-ficci-ey-report. Accessed 22 October 2026.
+- [R7] Government of India, 2024 video subscription revenue. https://www.pib.gov.in/PressReleasePage.aspx?PRID=2205233&lang=2&reg=3. Accessed 22 October 2026.
+- [R8] MongoDB, Data Modeling Best Practices. https://www.mongodb.com/docs/manual/data-modeling/best-practices/. Accessed 22 October 2026.
+- [R9] MongoDB, Unbounded Arrays Anti-Pattern. https://www.mongodb.com/docs/manual/data-modeling/design-antipatterns/unbounded-arrays/. Accessed 22 October 2026.
+- [R10] MongoDB, SonyLIV content management case study. https://www.mongodb.com/company/blog/innovation/sonyliv-improves-cms-performance-by-98-percent-on-atlas. Accessed 22 October 2026.
+- [R11] IMDb, Non-Commercial Datasets. https://data.imdb.com/non-commercial-datasets/. Accessed 22 October 2026.
+- [R12] MovieLens 32M, README and licence. https://files.grouplens.org/datasets/movielens/ml-32m-README.html. Accessed 22 October 2026.
+- [R13] Kaggle, Netflix titles dataset metadata. https://www.kaggle.com/api/v1/datasets/view/shivamb/netflix-shows. Accessed 22 October 2026.
+- [R14] ZEE5 FY25 viewing report, Deccan Chronicle. https://www.deccanchronicle.com/entertainment/ott/zee5-clocks-105-billion-watch-minutes-in-fy25-amid-renewed-regional-push-1898817. Accessed 22 October 2026.
+- [R15] Harper, F. Maxwell, and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems 5(4), Article 19. https://doi.org/10.1145/2827872. Accessed 22 October 2026.
 
 **Evidence files:** `data/manifest.json`, the six `data/*.json` arrays, ten `queries/**/*.js` files, ten `docs/query-output/*.txt` files, and ten matching `screenshots/*.png`. These files fix the reproducible scope of this report.

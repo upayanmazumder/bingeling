@@ -1,6 +1,6 @@
 # Questions
 
-Status: all ten fixed questions have standalone mongosh queries. Run each query from the repository root against the seeded `bingeling` database. Queries print counts and compact Extended JSON rows. Large results show a labeled sample: Q1 and Q5 show the first 10 rows, Q7 and Q9 show the first 20 rows, and Q8 shows the top 25 rows.
+Status: all ten fixed questions have standalone mongosh queries. Run each query from the repository root against the seeded `bingeling` database. Queries print counts and compact Extended JSON rows. Large results show a labeled sample. Q1 and Q5 show the first 10 rows. Q7 and Q9 show the first 20 rows. Q8 shows the top 25 rows.
 
 ## Simple (5)
 
@@ -30,7 +30,7 @@ Q9 reports UTC payment months with payments. It sums actual payment amounts. Chu
 
 Q10 uses each user's local hour. Its running share is the cumulative fraction of a device's events across hours 0 to 23. It is not a trend over calendar time.
 
-## Extra queries (optional)
+## Extra queries
 
-- Text search on title and cast names.
-- `explain("executionStats")` before and after an index, to show the index effect.
+- Q11 compares a collection scan with the index scan for the Q4 lookup: `queries/extra/q11-explain-index.js`.
+- Q12 searches title and cast names with the text index: `queries/extra/q12-text-search.js`.

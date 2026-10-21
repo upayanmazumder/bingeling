@@ -15,3 +15,13 @@ for file in queries/simple/q0[1-5]-*.js queries/complex/q{06,07,08,09}-*.js quer
 done
 [[ "$count" -eq 10 ]] || { echo "Expected 10 queries, found $count" >&2; exit 1; }
 echo 'All 10 queries passed.'
+for file in queries/extra/q1[12]-*.js; do
+  [[ -f "$file" ]] || { echo "Missing extra query: $file" >&2; exit 1; }
+  name="$(basename "${file%.js}")"
+  output="docs/query-output/$name.txt"
+  printf 'Command: docker compose exec -T mongo mongosh --quiet bingeling %s\n' "$file" | tee "$output"
+  docker compose exec -T mongo mongosh --quiet bingeling "$file" | tee -a "$output"
+  [[ $(wc -l < "$output") -gt 1 ]] || { echo "Empty result: $file" >&2; exit 1; }
+  printf 'PASS %s (extra)\n' "$name"
+done
+echo 'Extra queries passed.'

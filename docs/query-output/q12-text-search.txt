@@ -1,0 +1,15 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/extra/q12-text-search.js
+{
+  searchTerm: 'Adam Sandler',
+  matches: 9,
+  showingTop: 10
+}
+{"type":"movie","name":"50 First Dates","releaseYear":2004,"score":1.5}
+{"type":"movie","name":"Anger Management","releaseYear":2003,"score":1.5}
+{"type":"movie","name":"Big Daddy","releaseYear":1999,"score":1.5}
+{"type":"movie","name":"Click","releaseYear":2006,"score":1.5}
+{"type":"movie","name":"Grown Ups","releaseYear":2010,"score":1.5}
+{"type":"movie","name":"Little Nicky","releaseYear":2000,"score":1.5}
+{"type":"movie","name":"Mr. Deeds","releaseYear":2002,"score":1.5}
+{"type":"movie","name":"Uncut Gems","releaseYear":2019,"score":1.5}
+{"type":"movie","name":"You Don't Mess with the Zohan","releaseYear":2008,"score":1.5}

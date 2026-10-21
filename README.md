@@ -43,15 +43,18 @@ docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q01-thrill
 To rebuild the data from original sources, run `python3 scripts/generate_data.py`.
 See `docs/data-sources.md` for source terms and `docs/seed-design.md` for field provenance.
 
-To regenerate terminal screenshots after loading data:
+To regenerate the screenshots, load the data and start the "Lab Terminal (sonder)" app on Hyprland:
 
 ```sh
-bash scripts/capture-screenshots.sh
+bash scripts/capture-lab-terminal.sh
 ```
 
-The capture command runs each query in a real `xterm` inside a temporary X11 display.
-It shares the running MongoDB container's network without mounting the Docker socket.
-Review each PNG in `screenshots/` before building the report.
+The script opens one `mongosh` session in the MongoDB container. It runs each query there with `load()`.
+It types into the real terminal window and captures only that window with `grim`.
+It needs `hyprctl`, `wtype`, `grim`, and ImageMagick. Review each PNG in `screenshots/` before building the report.
+
+Format code before a commit with `ruff format`, `ruff check`, `prettier --write`, and `shellcheck`.
+The `.editorconfig`, `.prettierrc.json`, and `ruff.toml` files hold the settings.
 
 ## Status
 

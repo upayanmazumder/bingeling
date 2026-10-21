@@ -1,0 +1,15 @@
+Command: docker compose exec -T mongo mongosh --quiet bingeling queries/extra/q11-explain-index.js
+{
+  plan: 'collection scan',
+  stages: 'SORT > COLLSCAN',
+  docsExamined: 50000,
+  keysExamined: 0,
+  returned: 10
+}
+{
+  plan: 'index { userId: 1, startedAt: -1 }',
+  stages: 'LIMIT > FETCH > IXSCAN',
+  docsExamined: 10,
+  keysExamined: 10,
+  returned: 10
+}

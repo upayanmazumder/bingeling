@@ -3,13 +3,13 @@ services:
     image: mongo:7
     container_name: bingeling-mongo
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo-data:/data/db
       - ./:/workspace:ro
     working_dir: /workspace
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ping: 1}).ok"]
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand({ping: 1}).ok']
       interval: 5s
       timeout: 4s
       retries: 20

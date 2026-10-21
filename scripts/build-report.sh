@@ -2,7 +2,7 @@
 # Rebuild the report from checked-in evidence with pinned compact renderers.
 set -eu
 
-root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+root=$(CDPATH="" cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 
 if ! command -v python3 >/dev/null 2>&1; then
