@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+- Replaced the old report with the rewritten case study at `report/Bingeling-report.pdf`.
+- The single build command produces the final report with ten queries, answers, and execution screenshots.
+
 ## 1.0.1 - 2026-10-22
 
 ### Changed

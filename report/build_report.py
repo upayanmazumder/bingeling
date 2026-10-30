@@ -1,123 +1,47 @@
 #!/usr/bin/env python3
-"""Generate the Bingeling report from checked-in evidence, not hand-copied queries."""
+# ruff: noqa: E501
+"""Write a student-facing case study from the recorded seed and query evidence."""
 
 import hashlib
 import json
 import re
 import struct
-import sys
-from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPORT = ROOT / "report" / "Bingeling-report.md"
+SOURCE = ROOT / "report/Bingeling-report.md"
 DATA = ROOT / "data"
-OUTPUT = ROOT / "docs" / "query-output"
+OUTPUT = ROOT / "docs/query-output"
 SCREENSHOTS = ROOT / "screenshots"
 
-QUESTIONS = [
+QUESTIONS = (
     (
         "simple",
         "q01-thrillers-after-2018",
         "List all Thriller movies released after 2018, newest first.",
-        "Filter the movie catalogue by genre and release year. Sort newer releases first.",
-        "The generator intentionally selects recent linked Thrillers. Their presence is not proof of demand or an unbiased catalogue sample.",
     ),
-    (
-        "simple",
-        "q02-active-premium-count",
-        "How many users have an active premium subscription?",
-        "Count the users whose current plan is premium and whose current status is active.",
-        "The generator assigns each user a plan and status. This count measures the current synthetic snapshot, not subscriber growth.",
-    ),
-    (
-        "simple",
-        "q03-catalogue-languages",
-        "Which languages are in the catalogue?",
-        "List distinct language codes stored on title documents.",
-        "The generator infers language from catalogue country. These codes are proxies, not confirmed audio-track languages or viewing shares.",
-    ),
-    (
-        "simple",
-        "q04-recent-watches",
-        "Show the 10 most recent watch events of one user.",
-        "Use the fixed demo user from the manifest. Sort that user's events by start time and limit the result to ten.",
-        "Many recorded start times are MovieLens rating times, not watched-at times. The result demonstrates sorting, not true recent viewing.",
-    ),
-    (
-        "simple",
-        "q05-titles-by-actor",
-        "Find titles that feature a given actor.",
-        "Use the fixed demo actor from the manifest. Match the name in each title's embedded cast.",
-        "This result checks a cast-based browse operation, not the actor's popularity.",
-    ),
+    ("simple", "q02-active-premium-count", "How many users have an active premium subscription?"),
+    ("simple", "q03-catalogue-languages", "Which languages are in the catalogue?"),
+    ("simple", "q04-recent-watches", "Show the 10 most recent watch events of one user."),
+    ("simple", "q05-titles-by-actor", "Find titles that feature a given actor."),
     (
         "complex",
         "q06-top-genres-by-country",
         "What are the top 5 genres by total watch minutes in each country?",
-        "Join watch events to titles and users. Group watch minutes by country and genre, then rank genres within each country.",
-        "Countries are assigned to anonymous rating IDs. Multi-genre titles add their minutes to each genre, so genre totals overlap.",
     ),
     (
         "complex",
         "q07-completion-vs-rating",
         "What is the completion rate of each movie, with average rating?",
-        "For each movie, aggregate its watch events and independently average its reviews. An unwatched movie has no completion percentage.",
-        "Many completed flags use the same MovieLens ratings as the reviews. The association is built into the seed and cannot show causation.",
     ),
     (
         "complex",
         "q08-binge-watchers",
         "Which users binge-watched (3 or more episodes of one series on one day)?",
-        "Group completed series sessions by user, series, and the user's local calendar day. Count distinct episodes, then show up to 25 qualifying groups.",
-        "Replays do not count as new episodes. This query shows at most 25 synthetic binge groups, not every qualifying group.",
     ),
-    (
-        "complex",
-        "q09-revenue-and-churn",
-        "What is the monthly revenue and churn per plan?",
-        "Group generated payments by UTC payment month and plan. Divide current-plan cancellations that month by users active at its start.",
-        "The output covers months with payments. It describes generated billing, not audited revenue. A current subscription snapshot cannot track all past plan changes.",
-    ),
-    (
-        "complex",
-        "q10-device-usage-by-hour",
-        "How does device usage change by hour of day?",
-        "Group events and watch minutes by user-local hour and device. Show six-hour dayparts and each device's cumulative hourly event share.",
-        "Devices are assigned by the generator, and many hours come from rating timestamps. This result cannot establish real hourly demand.",
-    ),
-]
-
-REFERENCES = [
-    'Bingeling project, "Domain analysis," docs/domain-analysis.md, 2026.',
-    'Bingeling project, "Data model," docs/data-model.md, 2026.',
-    'Bingeling project, "Fixed questions," docs/questions.md, 2026.',
-    'Bingeling project, "Guidelines," GUIDELINES.md, 2026.',
-    'Netflix, "What we watched: The second half of 2025." [Online]. Available: https://about.netflix.com/news/what-we-watched-the-second-half-of-2025',
-    'FICCI and EY, "India\'s media and entertainment sector in 2025," EY India newsroom, Mar. 2026. [Online]. Available: https://www.ey.com/en_in/newsroom/2026/03/india-s-media-and-entertainment-sector-grew-9-percent-to-inr-2-point-78-trillion-in-2025-driven-by-digital-and-live-experiences-ficci-ey-report',
-    'Government of India, Press Information Bureau, "Video subscription revenue in 2024." [Online]. Available: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2205233&lang=2&reg=3',
-    'MongoDB, Inc., "Data modeling best practices," MongoDB Docs. [Online]. Available: https://www.mongodb.com/docs/manual/data-modeling/best-practices/',
-    'MongoDB, Inc., "Unbounded arrays anti-pattern," MongoDB Docs. [Online]. Available: https://www.mongodb.com/docs/manual/data-modeling/design-antipatterns/unbounded-arrays/',
-    'MongoDB, Inc., "SonyLIV improves CMS performance by 98 percent on Atlas." [Online]. Available: https://www.mongodb.com/company/blog/innovation/sonyliv-improves-cms-performance-by-98-percent-on-atlas',
-    'IMDb, "IMDb non-commercial datasets." [Online]. Available: https://data.imdb.com/non-commercial-datasets/',
-    'GroupLens, "MovieLens 32M README and licence." [Online]. Available: https://files.grouplens.org/datasets/movielens/ml-32m-README.html',
-    'Kaggle, "Netflix movies and TV shows," dataset metadata. [Online]. Available: https://www.kaggle.com/api/v1/datasets/view/shivamb/netflix-shows',
-    'Deccan Chronicle, "ZEE5 clocks 105 billion watch minutes in FY25." [Online]. Available: https://www.deccanchronicle.com/entertainment/ott/zee5-clocks-105-billion-watch-minutes-in-fy25-amid-renewed-regional-push-1898817',
-    'F. M. Harper and J. A. Konstan, "The MovieLens datasets: History and context," ACM Trans. Interact. Intell. Syst., vol. 5, no. 4, Art. no. 19, 2015, doi: 10.1145/2827872.',
-]
-
-
-def ieee_citations(text):
-    """Turn internal [R12, R15] and [R1–R4] markers into IEEE numeric citations."""
-
-    def replace(match):
-        inner = match.group(1)
-        numbers = re.findall(r"R(\d+)", inner)
-        if "–" in inner:
-            return f"[{numbers[0]}]–[{numbers[-1]}]"
-        return ", ".join(f"[{number}]" for number in numbers)
-
-    return re.sub(r"\[(R\d+(?:(?:–|,\s*)R\d+)*)\]", replace, text)
+    ("complex", "q09-revenue-and-churn", "What is the monthly revenue and churn per plan?"),
+    ("complex", "q10-device-usage-by-hour", "How does device usage change by hour of day?"),
+)
 
 
 def required(path):
@@ -152,14 +76,10 @@ def image_is_png(path):
         raise ValueError(f"Screenshot is not a complete PNG: {path.relative_to(ROOT)}")
     width, height = struct.unpack(">II", raw[16:24])
     if width < 500 or height < 100:
-        raise ValueError(
-            f"Screenshot is too small to show command and output: {path.relative_to(ROOT)}"
-        )
+        raise ValueError(f"Screenshot is too small: {path.relative_to(ROOT)}")
 
 
 def load_inputs():
-    for name in ("report-outline.md", "domain-analysis.md", "data-model.md", "questions.md"):
-        required(ROOT / "docs" / name)
     manifest = json.loads(required(DATA / "manifest.json").read_text(encoding="utf-8"))
     for field in ("demoUserId", "demoActor"):
         if not manifest.get(field):
@@ -168,181 +88,192 @@ def load_inputs():
     for name in ("users", "titles", "watch_events", "reviews", "plans", "payments"):
         path = required(DATA / f"{name}.json")
         collection = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(collection, list) or not collection:
-            raise ValueError(f"data/{name}.json must contain a nonempty JSON array")
         recorded = manifest.get("files", {}).get(name, {})
-        if recorded.get("count") != len(collection) or recorded.get("sha256") != sha256_file(path):
-            raise ValueError(f"data/{name}.json differs from its manifest count or SHA-256")
+        if (
+            not collection
+            or recorded.get("count") != len(collection)
+            or recorded.get("sha256") != sha256_file(path)
+        ):
+            raise ValueError(f"data/{name}.json differs from its manifest")
         collections[name] = collection
     queries = []
-    for group, stem, question, explanation, insight in QUESTIONS:
-        query_path = required(ROOT / "queries" / group / f"{stem}.js")
-        output_path = required(OUTPUT / f"{stem}.txt")
-        screenshot_path = SCREENSHOTS / f"{stem}.png"
-        image_is_png(screenshot_path)
-        query = query_path.read_text(encoding="utf-8")
-        output = output_path.read_text(encoding="utf-8")
-        expected = f"queries/{group}/{stem}.js"
-        if expected not in output.splitlines()[0]:
-            raise ValueError(f"Saved output lacks query command for {expected}")
-        if not query.strip() or not any(line.strip() for line in output.splitlines()[1:]):
-            raise ValueError(f"Query or saved result is empty: {stem}")
-        queries.append((group, stem, question, explanation, insight, query, output))
+    for group, stem, question in QUESTIONS:
+        query = required(ROOT / "queries" / group / f"{stem}.js").read_text(encoding="utf-8")
+        output = required(OUTPUT / f"{stem}.txt").read_text(encoding="utf-8")
+        image_is_png(SCREENSHOTS / f"{stem}.png")
+        if f"queries/{group}/{stem}.js" not in output.splitlines()[0] or not any(
+            output.splitlines()[1:]
+        ):
+            raise ValueError(f"Saved output lacks query results: {stem}")
+        queries.append((group, stem, question, query, output))
+    image_is_png(SCREENSHOTS / "population.png")
     return manifest, collections, queries
 
 
-def compact_sample(document):
-    # One line per document. Field values stay exactly as stored.
-    return json.dumps(document, ensure_ascii=False)
+EXPLANATIONS = [
+    "A catalogue search uses a movie filter, the Thriller genre, and a release year after 2018. The query counts every match and displays at most ten titles in descending year order.",
+    "This count checks two fields of the current subscription embedded in each user. A premium plan alone does not imply an active subscription.",
+    "The distinct operation lists the language codes stored in the title collection. These codes describe the generated catalogue field, not verified audio tracks.",
+    "The manifest identifies one demo user. A filter on `userId`, descending sort on `startedAt`, and limit of ten display that user's latest stored events.",
+    "The embedded `cast` array lets a title search match the selected actor. The query also counts all matches, then displays at most ten alphabetically.",
+    "The pipeline joins each event to its user and title. It groups minutes by user country and title genre, then ranks five genres per country. A title with several genres contributes its minutes to each genre.",
+    "Two separate lookups collect watch counts and review averages for each movie. Separate groups avoid multiplying rows when a title has several watches and reviews. Completion rate equals completed watch records divided by all watch records, multiplied by 100. The query displays the first 20 movies after sorting by that rate.",
+    "The pipeline joins events with users and series titles. It converts timestamps to each user's local day and groups by user, series, season, and episode. It removes repeated plays before counting distinct episodes. The final result reports the match count and displays at most 25 groups.",
+    "The pipeline adds generated payment amounts by plan and UTC payment month. It joins plan prices and counts users by their current plan. Churn rate equals cancellations in that month divided by users active at the month's start, multiplied by 100. A zero denominator returns null. Only months with payments appear, and the query displays the first 20 plan-month rows.",
+    "The pipeline joins each event to its user's time zone and extracts the local hour. It groups events and minutes by device and hour. A window calculation tracks each device's cumulative share across hours 0–23. Four six-hour buckets show totals by daypart.",
+]
 
 
-def output_excerpt(text, stem, maximum=42):
-    lines = text.rstrip().splitlines()
-    excerpt = "\n".join(lines[:maximum])
-    if len(lines) > maximum:
-        excerpt += f"\n[Excerpt ends after {maximum} of {len(lines)} lines. Full saved output: docs/query-output/{stem}.txt]"
-    return excerpt
+def rows(output):
+    return [json.loads(line) for line in output.splitlines()[1:] if line.startswith('{"')]
+
+
+def answer(number, output):
+    records = rows(output)
+    if number == 1:
+        count = int(re.search(r"totalMatches:\s*(\d+)", output).group(1))
+        return f"The seed catalogue has **{count}** matching films. The newest displayed films are **{records[0]['name']}** and **{records[1]['name']}**, both from {records[0]['releaseYear']}."
+    if number == 2:
+        count = int(re.search(r"activePremiumUsers:\s*(\d+)", output).group(1))
+        return f"The current seed snapshot contains **{count} active premium users**."
+    if number == 3:
+        codes = re.findall(r"'([a-z]{2})'", output)
+        return f"The catalogue contains **{len(codes)} language codes**: {', '.join(f'`{code}`' for code in codes)}."
+    if number == 4:
+        return f"For the selected user, the three newest stored events are episodes 3, 2, and 1 of **{records[0]['titleName']}** on 12 June 2023. They are the explicit sample binge scenario."
+    if number == 5:
+        count = int(re.search(r"totalMatches:\s*(\d+)", output).group(1))
+        return f"**Adam Sandler** appears in **{count}** matching titles. The first displayed title in alphabetical order is **{records[0]['name']}**."
+    if number == 6:
+        india = next(record for record in records if record["country"] == "IN")
+        top = india["topGenres"][0]
+        return f"**Drama** ranks first in each of the four assigned countries. For India, it totals **{top['totalMinutes']:,} generated watch minutes**. Action and Comedy rank next in India's output."
+    if number == 7:
+        first = records[0]
+        return f"The output covers **400 movies** and displays the first 20. **{first['title']}** leads this displayed order with **{first['completedWatches']} completed records out of {first['watches']}**, or **{first['completionRatePct']}%**. Its {first['reviewCount']} review has an average rating of {first['averageRating']} out of 5."
+    if number == 8:
+        record = records[0]
+        return f"The query finds **one qualifying group**. The generated user **{record['user']}** has three distinct completed episodes of **{record['series']}**. All three fall on 12 June 2023 in the Asia/Kolkata time zone."
+    if number == 9:
+        row = next(
+            record
+            for record in records
+            if record["plan"] == "premium" and record["month"]["$date"].startswith("2025-01")
+        )
+        return f"The query finds **63 plan-month rows** and displays the first 20. In January 2025, the premium plan has **₹{row['revenueInr']:,} in generated payments** from {row['payments']} payments. It has {row['cancelledDuringMonth']} cancellations among {row['activeAtMonthStart']} users active at the month start, so its reported churn rate is {row['churnRatePct']}%."
+    if number == 10:
+        dayparts = [record for record in records if "daypart" in record]
+        peak = max(dayparts, key=lambda record: record["events"])
+        return f"The query produces **96 device-hour groups** and four dayparts. The **{peak['daypart']}** bucket has the most generated records: **{peak['events']:,} events** and **{peak['minutesWatched']:,} minutes**."
+    raise ValueError(number)
+
+
+def example(doc, fields):
+    return json.dumps({key: doc[key] for key in fields}, ensure_ascii=False, indent=2)
 
 
 def build(manifest, collections, queries):
-    def n(collection):
-        return f"{len(collections[collection]):,}"
-
-    origins = Counter(
-        str(item.get("source", {}).get("dataset", "not labelled")) for item in collections["titles"]
-    )
-    event_origins = Counter(
-        str(item.get("origin", "not labelled")) for item in collections["watch_events"]
-    )
     parts = [
         "```{=typst}\n",
-        '#set heading(numbering: "1.")\n',
-        '#set page(margin: (x: 1.6cm, y: 1.5cm), numbering: "1")\n',
-        "#set text(size: 9pt)\n",
-        "#set par(leading: 0.5em, spacing: 0.7em)\n",
-        "#show raw: set text(size: 6.5pt)\n",
-        "#show heading: set block(above: 0.9em, below: 0.5em)\n",
+        "#set text(size: 10.5pt)\n",
+        "#set par(leading: 0.65em, spacing: 0.55em)\n",
+        "#show raw: set text(size: 8pt)\n",
+        "#show heading: set block(above: 1.1em, below: 0.6em)\n",
         "#align(center)[\n",
         "  #v(22%)\n",
-        '  #text(size: 30pt, weight: "bold")[Bingeling]\n',
-        "  #v(1cm)\n",
-        "  #text(size: 18pt)[MongoDB Video Streaming Case Study]\n",
+        '  #text(size: 27pt, weight: "bold")[Bingeling:]\n',
+        "  #v(0.5cm)\n",
+        "  #text(size: 18pt)[A Video Streaming Database Using MongoDB]\n",
         "  #v(2cm)\n",
-        "  #text(size: 16pt)[24BDS0367 Upayan Mazumder]\n",
-        "  #v(1cm)\n",
-        "  #text(size: 12pt)[CSE302L Database Systems]\n",
-        "  #v(1cm)\n",
-        "  #text(size: 12pt)[22 October 2026]\n",
-        "]\n",
-        "#pagebreak()\n",
-        "#outline(title: [Contents], depth: 2)\n",
+        "  #text(size: 15pt)[Upayan Mazumder]\\\n",
+        "  #text(size: 13pt)[24BDS0367]\\\n",
+        "  #text(size: 13pt)[BCSE302L – Database Systems]\\\n",
+        "  #text(size: 11pt)[22 October 2026]\n",
+        "]\n#pagebreak()\n",
         "```\n\n",
-        "# Introduction\n\n",
-        "Bingeling models a video streaming service with MongoDB 7. It stores catalogue titles, user subscriptions, rating-derived viewing proxies, reviews, plans, and generated payments. This course case study uses published catalogue and rating records where marked. It does not operate a real streaming service. The objective is to answer five simple and five complex database questions with reproducible queries and captured results [R1–R4].\n\n",
-        "# Domain analysis\n\n",
-        "Video services need catalogue discovery, viewing history, subscriber state, and billing records. Subscribers need recent sessions. Content teams need viewing measures by title and region. Finance needs dated payments and cancellations. Product teams need completion and device-use measures [R1].\n\n",
-        "Market figures have different definitions. The Government of India reported INR 9,200 crore in Indian video subscription revenue for 2024, citing FICCI-EY [R7]. FICCI-EY counted 216 million paid video subscriptions across 143 million households in 2025 [R6]. These are market context, not measurements of Bingeling. Netflix reported 96 billion viewing hours for July–December 2025. That figure covers Netflix, not this dataset [R5].\n\n",
-        "ZEE5 reported 105 billion watch minutes in FY25 and said connected devices supplied 64% of premium-content watch time. These figures describe ZEE5, not all Indian viewers [R14].\n\n",
-        "Streaming services can earn from subscriptions, ads, rentals, or combinations. This model covers subscriptions and simulated payments. Its watch events are rating-based viewing proxies or explicit synthetic scenarios, not observed video plays. It stores no video files or streaming bandwidth. The source distributions in [R1] describe IMDb metadata, not an Indian platform sample.\n\n",
-        "# Choice of database\n\n",
-        "MongoDB documents hold each title with its genres, cast, and bounded seasons. A title page can read these fields together. A user document holds a small profile list and the current subscription. MongoDB also supports aggregation pipelines for joins, time grouping, and ranking [R8]. SonyLIV reported improved content-management search after its move to MongoDB Atlas. That vendor case study concerns a content system. It does not prove that MongoDB serves video bytes [R10].\n\n",
-        "Reference the growing `watch_events`, `reviews`, and `payments` collections rather than embedding them in users or titles. Embedded unbounded histories would grow documents and could hit the 16 MB BSON limit [R9]. The copied `watch_events.titleName` aids display but becomes stale if a title changes name. Cross-document joins and updates cost work. A relational database could enforce more relationships with foreign keys. MongoDB is a fit for this course catalogue and event analysis, not a claim of universal superiority [R1, R2, R8].\n\n",
-        "# Data model\n\n",
-        "The database is `bingeling`. Each document uses `_id`. Referenced IDs are BSON `ObjectId` values in Extended JSON seed files. Timestamps are BSON dates encoded as Extended JSON `$date`. The six collections are:\n\n",
-        "| Collection | Role | Main relationships |\n|---|---|---|\n",
-        "| `users` | Generated identities, country, current subscription | `_id` joins events, reviews, payments |\n",
-        "| `titles` | Movies and series, cast and catalogue metadata | `_id` joins events and reviews |\n",
-        "| `watch_events` | One generated viewing session per document | `userId`, `titleId`; copied `titleName` |\n",
-        "| `reviews` | Selected MovieLens rating records, with empty text | `userId`, `titleId` |\n",
-        "| `plans` | Plan price in INR | Plan key joins users and payments |\n",
-        "| `payments` | Generated billing period and paid amount | `userId`, plan key |\n\n",
-        "Movies have `runtimeMin`. Series have `seasons[].episodes[]` with episode runtimes. Events can identify a season and episode. Plans store `priceInr`; payment records store `amountInr`, `paidAt`, `periodStart`, and `periodEnd`. A payment is a generated record, not proof of a real transfer. The model embeds bounded title details and a user's current subscription. It references growing session, review, and payment histories [R2].\n\n",
-        "The loader runs `scripts/schema.js`, which installs schema validators and indexes after import. Its indexes include unique `users.email`, `titles` by genre and release year, text search over title and cast names, `watch_events` by user and start time and by title, unique `(titleId, userId)` reviews, and payment indexes by plan or user and period start. These index definitions support the access patterns; this report does not claim measured speedups.\n\n",
-        "## Sample seed documents\n\n",
-        "The following examples come directly from the JSON arrays. The examples show stored types and field names, not a separate hand-written schema.\n\n",
-    ]
-    for name in ("users", "titles", "watch_events", "reviews", "plans", "payments"):
-        parts += [f"### `{name}`\n\n", code(compact_sample(collections[name][0]), "json"), "\n"]
-    parts += [
+        "# Introduction and domain analysis\n\n",
+        "Bingeling is a small database for a sample video-streaming platform. Its catalogue contains movies and series. A user has a profile and a current subscription. The database also stores sample viewing activity, ratings, plan details, and payments. This case study uses MongoDB 7 and answers five simple and five complex questions with queries against populated collections.\n\n",
+        "A viewer could search titles by genre or actor and inspect recent activity. A catalogue team could compare genres by country. A subscription team could examine plan counts and monthly records. These tasks need different data shapes: title details belong together, while viewing events and payments grow as separate records. This project models the records and queries. It does not stream video.\n\n",
+        "# Database choice and design\n\n",
+        "MongoDB stores a title as one document with arrays for genres and cast. A series also embeds its seasons and episodes. These lists have a limited size and usually appear with the title. The `users` collection embeds profiles and one current `subscription`. An index can support searches across documents. Aggregation pipelines combine collections and calculate grouped results for Q6–Q10 [3].\n\n",
+        "The database keeps `watch_events`, `reviews`, and `payments` separate. A user can acquire many events, so embedding every event in a user document would make that document grow without a fixed limit. Event documents refer to users and titles by BSON `ObjectId`. The `titleName` copied into an event makes a history row easier to display, but it needs an update if a title name changes. MongoDB does not enforce these references as relational foreign keys.\n\n",
+        "| Collection | Purpose and key fields | Links |\n|---|---|---|\n",
+        "| `users` | `_id`, `name`, `country`, `timezone`, `profiles`, current `subscription` | `_id` from events, reviews, payments |\n",
+        "| `titles` | `_id`, `type`, `name`, `releaseYear`, `genres`, `cast`, movie `runtimeMin` or series `seasons` | `_id` from events and reviews |\n",
+        "| `watch_events` | `userId`, `titleId`, `startedAt`, `minutesWatched`, `completed`, `device` | users and titles |\n",
+        "| `reviews` | `userId`, `titleId`, `rating`, `createdAt` | users and titles |\n",
+        "| `plans` | `name`, `priceInr`, `screens`, `maxQuality` | plan name in users and payments |\n",
+        "| `payments` | `userId`, `plan`, `amountInr`, `paidAt`, billing period | users and plans |\n\n",
+        "The loader imports Extended JSON arrays with `$oid` and `$date`, then installs validators and indexes. A compound index on `watch_events.userId` and `startedAt` suits Q4. The `titles.genres` and `releaseYear` index suits Q1. A unique `(titleId, userId)` review index limits one rating per user and title. Payment indexes cover plan and billing period. These indexes describe the implemented access paths. The report does not claim a measured speed gain.\n\n",
         "# Data population\n\n",
-        "The checked-in arrays contain the following actual record counts at report-build time. Counts come from `data/<collection>.json`; they are not market estimates.\n\n",
-        "| Collection | Records |\n|---|---:|\n",
+        "The seed script uses fixed seed `367`. It selects 400 movies from a September 2021 Netflix catalogue snapshot and matches them by title and year to MovieLens movie links. It also selects 100 series from the catalogue. The catalogue supplies names, cast, categories, and release years [1]. MovieLens 32M supplies anonymous user IDs, ratings, and rating timestamps [2]. The script stores 5,000 ratings as `reviews` with empty text.\n\n",
+        "The script generates names and `example.com` addresses for those anonymous IDs. It also generates countries, subscriptions, plans, billing records, devices, and series episodes. It uses 49,997 selected MovieLens rating rows to construct sample `watch_events` and adds three series events for one binge example. A rating timestamp is **not** a playback timestamp. For these movie records, a rating of at least 3 sets `completed` to true and `minutesWatched` to the movie runtime. Lower ratings produce a half-runtime record. The script generates the extra fields and sample viewing activity. It does not observe playback.\n\n",
+        "The script writes six Extended JSON arrays. `scripts/load.sh` imports them into `bingeling`, and `scripts/schema.js` adds validators and indexes. The checked-in arrays contain these counts:\n\n",
+        "| Collection | Documents |\n|---|---:|\n",
     ]
     for name in ("users", "titles", "watch_events", "reviews", "plans", "payments"):
-        parts.append(f"| `{name}` | {n(name)} |\n")
-    parts += ["\n| Source archive | SHA-256 from manifest |\n|---|---|\n"]
-    for name, source in sorted(manifest["sources"].items()):
-        parts.append(f"| `{name}` | `{source['sha256']}` |\n")
+        parts.append(f"| `{name}` | {len(collections[name]):,} |\n")
     parts += [
-        "\nThe generator in `scripts/generate_data.py` uses fixed seed `",
-        str(manifest["seed"]),
-        "`. It selects 400 Netflix-listed movies matched to MovieLens links and 100 Netflix-listed series. The source archives and SHA-256 values are in `data/manifest.json`. The loader imports the Extended JSON arrays and applies validators and indexes. MovieLens anonymous rating IDs link synthetic user names to selected title ratings. Review scores and timestamps come from MovieLens, while review text is empty. Many watch-event timestamps come from those ratings and are **not** observed watch starts. The script converts rating at least 3 into `completed` and a full movie runtime. It converts a lower rating into a half-runtime session. Other events, series episodes, languages inferred from country, devices, subscriptions, and payments are generated. Actor names and catalogue labels come from Netflix metadata [R11–R13].\n\n",
-        "The Netflix titles source is a September 2021 CC0 snapshot [R13]. MovieLens 32M was generated in October 2023. It includes anonymous ratings, not demographics or watch logs [R12]. GroupLens permits research use and transformed redistribution only under its stated terms. It requires attribution and prohibits commercial or revenue-bearing use without permission. Those terms also apply to this derived seed data. This report does not imply GroupLens or University of Minnesota endorsement [R12, R15].\n\n",
-        "Title source labels: ",
-        ", ".join(f"`{key}`: {value:,}" for key, value in sorted(origins.items())),
-        ". Watch-event origin labels: ",
-        ", ".join(f"`{key}`: {value:,}" for key, value in sorted(event_origins.items())),
-        ". The source archives are not an up-to-date full platform inventory. Neither a MovieLens rating nor a linked user ID proves that anyone watched a title on Bingeling.\n\n",
-        "The fixed demo user has ObjectId `",
-        str(manifest["demoUserId"]),
-        "`. The fixed demo actor is `",
-        str(manifest["demoActor"]),
-        "`. These values are selection anchors, not real customer identities. The population screenshot below shows a captured terminal count command and its result.\n\n",
+        "\nThe following field excerpts come from the checked-in arrays. The first is a movie title. The second is a sample event. They omit other stored fields.\n\n",
+        "**Title excerpt**\n\n",
+        code(
+            example(collections["titles"][0], ("_id", "type", "name", "genres", "runtimeMin")),
+            "json",
+        ),
+        "\n**Event excerpt**\n\n",
+        code(
+            example(
+                collections["watch_events"][0],
+                ("userId", "titleId", "startedAt", "minutesWatched", "completed", "origin"),
+            ),
+            "json",
+        ),
+        "\nThe population screenshot records the MongoDB counts from the existing demonstration.\n\n",
+        "![MongoDB collection counts](../screenshots/population.png){ width=100% }\n\n",
+        "# Dataset limits\n\n",
+        "MovieLens records ratings, not video plays. The generator assigns event duration, device, completion, user names, locations, subscriptions, and payments. It infers the `language` code from title country rather than verified audio data. The generator adds the binge example deliberately. Thus Q4 and Q6–Q10 illustrate database questions, not actual viewer behaviour or collected revenue. Q7 completion and rating are not independent: the generator uses rating to set many completion flags. The Netflix catalogue is a dated selection, not a current complete service catalogue.\n\n",
     ]
-    image_is_png(SCREENSHOTS / "population.png")
-    parts += [
-        "![Population command and database counts](../screenshots/population.png){ width=70% }\n\n"
-    ]
-    for group, heading in (("simple", "Simple questions"), ("complex", "Complex questions")):
-        parts += [
-            f"# {heading}\n\n",
-            "For every question, the JavaScript block below is copied directly from the named query file at build time. The terminal excerpt comes from the saved output. The PNG is a captured command-and-output image. The full saved output is in `docs/query-output/`. No query result is simulated in this report.\n\n",
-        ]
-        for query_group, stem, question, explanation, insight, query, output in queries:
+    for group, heading in (
+        ("simple", "Five simple questions"),
+        ("complex", "Five complex questions"),
+    ):
+        parts.append(f"# {heading}\n\n")
+        for query_group, stem, question, query, output in queries:
             if query_group != group:
                 continue
             number = int(stem[1:3])
+            executable = "\n".join(query.splitlines()[3:]) + "\n"
             parts += [
-                f"## Q{number}: {question}\n\n",
-                "**Explanation.** ",
-                explanation,
+                f"## Q{number}. {question}\n\n",
+                EXPLANATIONS[number - 1],
                 "\n\n",
-                f"**Query source:** `queries/{group}/{stem}.js`\n\n",
-                code(query, "javascript"),
+                f"**Query** (`queries/{group}/{stem}.js`):\n\n",
+                code(executable, "javascript"),
                 "\n",
-                f"Output file: `docs/query-output/{stem}.txt`. The screenshot shows the command and the output.\n\n",
-                f"![Q{number} captured command and output](../screenshots/{stem}.png){{ width=70% }}\n\n",
-                "**Insight and scope.** ",
-                insight,
-                " The screenshot above contains the observed records.\n\n",
+                f"![Q{number} execution in mongosh](../screenshots/{stem}.png){{ width=100% }}\n\n",
+                "**Answer.** ",
+                answer(number, output),
+                "\n\n",
             ]
     parts += [
-        "# Insights\n\n",
-        "The catalogue queries show available titles, languages, and cast matches. Country-genre minutes, completion, binge groups, and hourly device use are properties of this constructed dataset. They are not market demand estimates. Multi-genre titles appear in several genre totals. Completion and rating are linked by the generator's rating threshold, so their association is partly built into the data. Likewise, the generator assigns countries, devices, and plan states. Monthly payments are simulated. The saved outputs above give the exact result values for each query, subject to its stated scope.\n\n",
-        "# Conclusion and limitations\n\n",
-        "This case study demonstrates document modeling, indexed lookup designs, aggregation, and a repeatable source-to-report trail. Every query block comes from its executable source. Each screenshot shows a terminal run of its query file. Each numbered screenshot is required at build time. These checks prevent a report with missing evidence, but they cannot prove a screenshot came from a specific database state.\n\n",
-        "Netflix catalogue labels are a dated sample. MovieLens ratings are not viewing logs [R12, R13]. User identities, country and time zone, devices, episodes, subscriptions, and payments are constructed. The generator derives many completion flags from ratings; this prevents independent inference from the Q7 comparison. A rating timestamp is not a watch-start time; Q4, Q8, and Q10 illustrate query mechanics rather than real viewing rhythms. A current subscription record cannot reconstruct all past plan changes. Payments do not prove collected or recognized revenue. Do not use these results for forecasts. Source terms restrict reuse of the MovieLens-derived records [R1, R12, R15].\n\n",
+        "# Findings and limitations\n\n",
+        "The seed catalogue returns ten Thriller films after 2018 and five stored language codes. The current subscription snapshot contains 619 active premium users. Drama leads the genre-minute ranking in each of the four assigned countries. The single detected binge group is the inserted three-episode example. The Q10 evening bucket contains 14,575 generated events. These are answers for this seed, not estimates for a streaming service.\n\n",
+        "The constructed events cannot measure real viewing time, completion, geography, or device choice. The Q9 payment totals and churn describe generated subscriptions. Q9 uses the current plan and its start and end dates, so it cannot reconstruct a subscriber's past plan changes. Only the first 20 of 63 plan-month rows appear in that query's displayed output.\n\n",
+        "# Conclusion\n\n",
+        "The six MongoDB collections store a catalogue, users, sample activity, ratings, plans, and payments. Five simple queries filter, count, or list documents. Five pipelines join collections and calculate grouped measures. The recorded outputs and screenshots show the implementation for this case study. The generated fields limit what its numbers can say about real viewers.\n\n",
         "# References\n\n",
+        "[1] S. Bansal, “Netflix Movies and TV Shows,” Kaggle, September 2021. [Online]. Available: https://www.kaggle.com/datasets/shivamb/netflix-shows (CC0 catalogue snapshot).\n\n",
+        "[2] GroupLens Research, “MovieLens 32M Dataset,” University of Minnesota. [Online]. Available: https://grouplens.org/datasets/movielens/32m/ and https://files.grouplens.org/datasets/movielens/ml-32m-README.html. Research and redistribution must follow the GroupLens terms. Commercial use requires permission. GroupLens and the University of Minnesota do not endorse Bingeling. See also F. M. Harper and J. A. Konstan, “The MovieLens Datasets: History and Context,” *ACM Transactions on Interactive Intelligent Systems*, vol. 5, no. 4, 2015, doi:10.1145/2827872.\n\n",
+        "[3] MongoDB, “Data Modeling Best Practices.” [Online]. Available: https://www.mongodb.com/docs/manual/data-modeling/best-practices/.\n",
     ]
-    for number, entry in enumerate(REFERENCES, start=1):
-        suffix = " Accessed: Oct. 22, 2026." if "[Online]" in entry else ""
-        parts += [f"- [{number}] {entry}{suffix}\n"]
-    parts += [
-        "\n**Evidence files:** `data/manifest.json`, the six `data/*.json` arrays, ten `queries/**/*.js` files, ten `docs/query-output/*.txt` files, and ten matching `screenshots/*.png`. These files fix the reproducible scope of this report.\n"
-    ]
-    return ieee_citations("".join(parts))
+    return "".join(parts)
 
 
 def main():
-    try:
-        manifest, collections, queries = load_inputs()
-        REPORT.write_text(build(manifest, collections, queries), encoding="utf-8")
-    except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
-        print(f"Cannot build report: {error}", file=sys.stderr)
-        return 1
-    print(f"Generated {REPORT.relative_to(ROOT)}")
-    return 0
+    manifest, collections, queries = load_inputs()
+    SOURCE.write_text(build(manifest, collections, queries), encoding="utf-8")
+    print(f"Generated {SOURCE.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

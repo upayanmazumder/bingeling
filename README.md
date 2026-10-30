@@ -34,7 +34,9 @@ bash scripts/demo.sh
 bash scripts/build-report.sh
 ```
 
-The report is `report/Bingeling-report.pdf`. To run one query after the demo:
+The final document is `report/Bingeling-report.pdf`. The build reads the ten
+query files, saved outputs, seed arrays, and terminal screenshots.
+To run one query after the demo:
 
 ```sh
 docker compose exec -T mongo mongosh --quiet bingeling queries/simple/q01-thrillers-after-2018.js
